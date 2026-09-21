@@ -39,41 +39,41 @@ flowchart TD
     end
 
     subgraph AuthGateway ["2. Identity Gateway (:8080) - Spring Boot 4"]
-        Filter["JwtAuthenticationFilter\n(OncePerRequestFilter)"]
+        Filter["JwtAuthenticationFilter - OncePerRequestFilter"]
         AuthSvc["AuthService & OAuth Handler"]
-        TokenBlacklist["TokenBlacklistService\n(Bounded TTL ConcurrentHashMap)"]
+        TokenBlacklist["TokenBlacklistService - Bounded TTL"]
         UserSvc["UserService & Guardrails"]
     end
 
     subgraph IdP ["Google Identity Provider"]
-        GoogleOAuth["Google OAuth 2.0\n(Authorization Code Flow)"]
+        GoogleOAuth["Google OAuth 2.0 - Auth Code Flow"]
     end
 
     subgraph Database ["Persistence Layer"]
-        SQLServer[("Microsoft SQL Server 2022\nDocker ce51c6ee1fe9")]
+        SQLServer[("Microsoft SQL Server 2022")]
     end
 
     subgraph Downstream ["3. Downstream Microservices (Decoupled SOA)"]
-        Academic["Academic Records Service\n(:8081)"]
-        Library["Library Service\n(:8082)"]
-        Billing["Tuition & Billing Service\n(:8083)"]
+        Academic["Academic Records Service (:8081)"]
+        Library["Library Service (:8082)"]
+        Billing["Tuition & Billing Service (:8083)"]
     end
 
-    SPA -->|1. Request Login URL| AuthSvc
-    AuthSvc -->|2. Redirect with State| GoogleOAuth
-    GoogleOAuth -->|3. Return Auth Code| SPA
-    SPA -->|4. Exchange Code| AuthSvc
-    AuthSvc -->|5. Token Exchange (Mutual TLS)| GoogleOAuth
-    AuthSvc -->|Save User & Identity| SQLServer
-    AuthSvc -->|Issue Stateless JWT| SPA
+    SPA -->|"1. Request Login URL"| AuthSvc
+    AuthSvc -->|"2. Redirect with State"| GoogleOAuth
+    GoogleOAuth -->|"3. Return Auth Code"| SPA
+    SPA -->|"4. Exchange Code"| AuthSvc
+    AuthSvc -->|"5. Token Exchange via Mutual TLS"| GoogleOAuth
+    AuthSvc -->|"Save User & Identity"| SQLServer
+    AuthSvc -->|"Issue Stateless JWT"| SPA
 
-    SPA -->|Bearer JWT Header| Filter
-    Filter -->|Check Revocation| TokenBlacklist
-    Filter -->|Establish ThreadLocal Context| AuthGateway
+    SPA -->|"Bearer JWT Header"| Filter
+    Filter -->|"Check Revocation"| TokenBlacklist
+    Filter -->|"Establish ThreadLocal Context"| AuthGateway
 
-    SPA -->|Propagate Bearer JWT| Downstream
-    Academic -.->|Local Signature Verify < 0.3ms\nZero DB Queries| Academic
-    Library -.->|Local Signature Verify < 0.3ms\nZero DB Queries| Library
+    SPA -->|"Propagate Bearer JWT"| Downstream
+    Academic -.->|"Local Signature Verify (under 0.3ms)"| Academic
+    Library -.->|"Local Signature Verify (under 0.3ms)"| Library
 ```
 
 ---
