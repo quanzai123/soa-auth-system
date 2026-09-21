@@ -30,23 +30,25 @@ This project delivers an enterprise-grade **Centralized Identity Gateway (`soa-a
 
 ## 🏛️ High-Level System Architecture
 
+### Component Architecture Diagram
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["1. Client Ingress Layer"]
-        SPA["Web Single Page App (:8080)"]
+        SPA["Web Single Page App (:3000)"]
         Mobile["Mobile Applications"]
         External["Third-Party SOA Clients"]
     end
 
-    subgraph AuthGateway ["2. Identity Gateway (:8080) - Spring Boot 4"]
-        Filter["JwtAuthenticationFilter - OncePerRequestFilter"]
+    subgraph AuthGateway ["2. Identity Service (:8080) - Spring Boot 4"]
+        Filter["JwtAuthenticationFilter\n(OncePerRequestFilter)"]
         AuthSvc["AuthService & OAuth Handler"]
-        TokenBlacklist["TokenBlacklistService - Bounded TTL"]
+        TokenBlacklist["TokenBlacklistService\n(Bounded TTL)"]
         UserSvc["UserService & Guardrails"]
+        Ctx["SecurityContext\n(ThreadLocal)"]
     end
 
     subgraph IdP ["Google Identity Provider"]
-        GoogleOAuth["Google OAuth 2.0 - Auth Code Flow"]
+        GoogleOAuth["Google OAuth 2.0\n(Auth Code Flow + PKCE)"]
     end
 
     subgraph Database ["Persistence Layer"]
@@ -60,20 +62,54 @@ flowchart TD
     end
 
     SPA -->|"1. Request Login URL"| AuthSvc
-    AuthSvc -->|"2. Redirect with State"| GoogleOAuth
-    GoogleOAuth -->|"3. Return Auth Code"| SPA
-    SPA -->|"4. Exchange Code"| AuthSvc
-    AuthSvc -->|"5. Token Exchange via Mutual TLS"| GoogleOAuth
+    AuthSvc -->|"2. Return Google URL (state + PKCE)"| SPA
+    SPA -->|"3. Redirect user"| GoogleOAuth
+    GoogleOAuth -->|"4. Auth Code + state"| SPA
+    SPA -->|"5. Send code + verifier"| AuthSvc
+    AuthSvc -->|"6. Token exchange (HTTPS + client secret)"| GoogleOAuth
     AuthSvc -->|"Save User & Identity"| SQLServer
-    AuthSvc -->|"Issue Stateless JWT"| SPA
+    UserSvc -->|"Enforce Orphan Guardrails"| SQLServer
+    AuthSvc -->|"7. Issue short-lived JWT (15m TTL)"| SPA
 
+    Mobile -->|"OAuth 2.0 + PKCE"| AuthSvc
     SPA -->|"Bearer JWT Header"| Filter
     Filter -->|"Check Revocation"| TokenBlacklist
-    Filter -->|"Establish ThreadLocal Context"| AuthGateway
+    Filter -->|"Establish Context"| Ctx
 
-    SPA -->|"Propagate Bearer JWT"| Downstream
-    Academic -.->|"Local Signature Verify (under 0.3ms)"| Academic
-    Library -.->|"Local Signature Verify (under 0.3ms)"| Library
+    SPA -->|"Propagate Bearer JWT"| Academic
+    SPA -->|"Propagate Bearer JWT"| Library
+    SPA -->|"Propagate Bearer JWT"| Billing
+    External -->|"Bearer JWT"| Academic
+    AuthSvc -.->|"Publish JWKS Public Keys"| Downstream
+```
+
+### End-to-End Authentication Sequence Diagram
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / Browser Agent
+    participant SPA as Web SPA (:3000)
+    participant Auth as Identity Service (:8080)
+    participant Google as Google IdP
+    participant DB as SQL Server 2022
+    participant Micro as Downstream Service (:8081)
+
+    User->>SPA: Click "Sign in with Google"
+    SPA->>Auth: GET /api/auth/google/url
+    Auth-->>SPA: Return Google OAuth URL (state, scope, client_id)
+    SPA->>Google: Redirect User to Google Consent Screen
+    User->>Google: Authenticate & Grant Scopes
+    Google-->>SPA: Redirect with Auth Code + State
+    SPA->>Auth: POST /api/auth/google/callback (code)
+    Auth->>Google: HTTPS Token Exchange (code + client_secret)
+    Google-->>Auth: ID Token & Verified User Claims
+    Auth->>DB: Upsert User & Identity (Google Sub ID)
+    Auth-->>SPA: Return Stateless JWT (15m TTL) + Refresh Token (7d)
+    
+    Note over SPA,Micro: Stateless Identity Propagation
+    SPA->>Micro: GET /api/grades (Header: Authorization: Bearer JWT)
+    Micro->>Micro: Validate Signature locally via JWKS / Public Key
+    Micro-->>SPA: HTTP 200 OK (Grade Data)
 ```
 
 ---
@@ -87,16 +123,14 @@ flowchart TD
 - Personal accounts (`@gmail.com`) receive `ROLE_PERSONAL`.
 - Enforced deterministically at the Web Security Filter layer; unauthorized access attempts are blocked with `HTTP 403 Forbidden` without consuming downstream application resources.
 
-### 2. Stateless Identity Propagation (Polyglot SOA)
+### 2. Stateless Identity Propagation & Short-Lived Access Tokens
+- **Decoupled Verification:** Downstream microservices verify token signatures locally using shared cryptographic secrets (or public keys via JWKS discovery), completely eliminating synchronous RPC calls to the Auth service.
+- **Revocation Trade-off & Short-Lived TTL:** Because downstream microservices do not synchronously query the central Blacklist on every call (preserving SOA loose coupling), Access Tokens are given a strictly **short lifespan of 15 minutes** paired with a 7-day Refresh Token. In enterprise environments, this can be coupled with a distributed Redis Cluster or API Gateway introspection.
 
-- Downstream services in Java, Python, Go, or Node.js independently verify token integrity using shared secrets or public keys.
-- Eliminates single-point-of-failure (SPOF) network bottlenecks between microservices and the identity gateway.
-
-### 3. Bounded TTL Blacklist (Instant Revocation)
-
-- Overcomes the stateless token invalidation dilemma upon logout (`POST /api/auth/logout`).
+### 3. Bounded TTL Blacklist (Instant Revocation on Identity Service)
+- Solves the stateless token invalidation dilemma on the Identity Service upon logout (`POST /api/auth/logout`).
 - Stores revoked token signatures with an exact remaining lifespan (`TTL = exp - now`).
-- Automatic memory eviction prevents RAM leakage, making it production-ready for distributed **Redis Cluster** drop-in replacement.
+- Automatic memory eviction prevents RAM leakage over time, designed as a direct drop-in for distributed **Redis Cluster** in production.
 
 ### 4. Multi-Identity & Orphan Account Prevention
 
