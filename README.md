@@ -31,6 +31,7 @@ This project delivers an enterprise-grade **Centralized Identity Gateway (`soa-a
 ## 🏛️ High-Level System Architecture
 
 ### Component Architecture Diagram
+
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["1. Client Ingress Layer"]
@@ -40,19 +41,19 @@ flowchart TD
     end
 
     subgraph AuthGateway ["2. Identity Service (:8080) - Spring Boot 4"]
-        Filter["JwtAuthenticationFilter\n(OncePerRequestFilter)"]
+        Filter["JwtAuthenticationFilter (OncePerRequestFilter)"]
         AuthSvc["AuthService & OAuth Handler"]
-        TokenBlacklist["TokenBlacklistService\n(Bounded TTL)"]
+        TokenBlacklist["TokenBlacklistService (Bounded TTL)"]
         UserSvc["UserService & Guardrails"]
-        Ctx["SecurityContext\n(ThreadLocal)"]
+        Ctx["SecurityContext (ThreadLocal)"]
     end
 
     subgraph IdP ["Google Identity Provider"]
-        GoogleOAuth["Google OAuth 2.0\n(Auth Code Flow + PKCE)"]
+        GoogleOAuth["Google OAuth 2.0 (Auth Code Flow + PKCE)"]
     end
 
     subgraph Database ["Persistence Layer"]
-        SQLServer[("Microsoft SQL Server 2022")]
+        SQLServer[(Microsoft SQL Server 2022)]
     end
 
     subgraph Downstream ["3. Downstream Microservices (Decoupled SOA)"]
@@ -80,10 +81,13 @@ flowchart TD
     SPA -->|"Propagate Bearer JWT"| Library
     SPA -->|"Propagate Bearer JWT"| Billing
     External -->|"Bearer JWT"| Academic
-    AuthSvc -.->|"Publish JWKS Public Keys"| Downstream
+    AuthSvc -.->|"Publish JWKS (Public Keys)"| Academic
+    AuthSvc -.->|"Publish JWKS (Public Keys)"| Library
+    AuthSvc -.->|"Publish JWKS (Public Keys)"| Billing
 ```
 
 ### End-to-End Authentication Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -105,7 +109,7 @@ sequenceDiagram
     Google-->>Auth: ID Token & Verified User Claims
     Auth->>DB: Upsert User & Identity (Google Sub ID)
     Auth-->>SPA: Return Stateless JWT (15m TTL) + Refresh Token (7d)
-    
+
     Note over SPA,Micro: Stateless Identity Propagation
     SPA->>Micro: GET /api/grades (Header: Authorization: Bearer JWT)
     Micro->>Micro: Validate Signature locally via JWKS / Public Key
@@ -124,10 +128,12 @@ sequenceDiagram
 - Enforced deterministically at the Web Security Filter layer; unauthorized access attempts are blocked with `HTTP 403 Forbidden` without consuming downstream application resources.
 
 ### 2. Stateless Identity Propagation & Short-Lived Access Tokens
+
 - **Decoupled Verification:** Downstream microservices verify token signatures locally using shared cryptographic secrets (or public keys via JWKS discovery), completely eliminating synchronous RPC calls to the Auth service.
 - **Revocation Trade-off & Short-Lived TTL:** Because downstream microservices do not synchronously query the central Blacklist on every call (preserving SOA loose coupling), Access Tokens are given a strictly **short lifespan of 15 minutes** paired with a 7-day Refresh Token. In enterprise environments, this can be coupled with a distributed Redis Cluster or API Gateway introspection.
 
 ### 3. Bounded TTL Blacklist (Instant Revocation on Identity Service)
+
 - Solves the stateless token invalidation dilemma on the Identity Service upon logout (`POST /api/auth/logout`).
 - Stores revoked token signatures with an exact remaining lifespan (`TTL = exp - now`).
 - Automatic memory eviction prevents RAM leakage over time, designed as a direct drop-in for distributed **Redis Cluster** in production.
