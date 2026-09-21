@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Xác Thực & Quản Lý Danh Tính SOA (Google OAuth 2.0)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <nav class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <i class="fa-solid fa-shield-halved text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white tracking-wide flex items-center gap-2">
+                        SOA Security Gateway
+                        <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">OAuth 2.0 & JWT</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Kiến trúc Hướng dịch vụ - Phân hệ Định danh & Bảo mật</p>
+                </div>
+            </div>
+
+            <!-- Right Nav Status & Actions -->
+            <div class="flex items-center space-x-3">
+                <!-- Status Badge (Logged In / Logged Out) -->
+                <span id="navAuthStatus" class="px-3 py-1 text-xs font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700/80 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Chưa xác thực</span>
+                </span>
+
+                <!-- Documentation Button -->
+                <a href="/docs.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold border border-indigo-500/30 flex items-center gap-1.5 transition" title="Xem tài liệu đặc tả kỹ thuật & kiến trúc">
+                    <i class="fa-solid fa-book-open text-indigo-400"></i>
+                    <span class="hidden sm:inline">Tài liệu kỹ thuật</span>
+                </a>
+
+                <!-- Live Database Viewer Button -->
+                <a href="/database.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-semibold border border-emerald-500/30 flex items-center gap-1.5 transition" title="Xem trực tiếp Database SQL Server">
+                    <i class="fa-solid fa-database text-emerald-400"></i>
+                    <span class="hidden sm:inline">Xem Database SQL Server</span>
+                </a>
+
+                <!-- Configure Google Client ID Button -->
+                <button onclick="toggleConfigModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition" title="Cấu hình Google Client ID">
+                    <i class="fa-solid fa-gear text-indigo-400"></i>
+                    <span class="hidden sm:inline">Cấu hình Client ID</span>
+                </button>
+
+                <!-- Logout Button (Only visible when logged in) -->
+                <button id="btnNavLogout" onclick="logout()" class="hidden px-3.5 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-xs font-semibold border border-rose-500/30 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-center">
+
+        <!-- ========================================================================= -->
+        <!-- MÀN HÌNH 1: TRANG ĐĂNG NHẬP (CHỈ HIỆN KHI CHƯA ĐĂNG NHẬP)                 -->
+        <!-- ========================================================================= -->
+        <div id="viewLogin" class="max-w-md w-full mx-auto my-auto py-6 space-y-6">
+            
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 mb-2 shadow-inner">
+                    <i class="fa-solid fa-lock text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tight">Xác thực Quyền Truy cập</h2>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                    Khu vực bảo mật được khóa bằng Spring Security Stateless (JWT). Bạn phải đăng nhập để được cấp quyền và giải mã tài nguyên.
+                </p>
+            </div>
+
+            <!-- Login Card -->
+            <div class="p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl space-y-6">
+                
+                <!-- Only Genuine Google OAuth2 Login -->
+                <div class="space-y-5 text-center">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">
+                        <i class="fa-solid fa-shield-check text-sm"></i>
+                        <span>Xác thực Chuẩn Google OAuth 2.0 (RFC 6749)</span>
+                    </div>
+
+                    <button id="btnLoginGoogle" onclick="loginWithGoogle()" class="w-full py-4 px-6 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-base flex items-center justify-center gap-3.5 shadow-2xl shadow-white/20 transition transform active:scale-98">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+                        <span>Đăng nhập an toàn với Google</span>
+                    </button>
+
+                    <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 text-left space-y-2.5 text-xs text-slate-300">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-graduation-cap text-emerald-400 mt-0.5 text-sm"></i>
+                            <span><strong>Tài khoản Sinh viên các Trường:</strong> Đăng nhập bằng email trường kết thúc bằng <code>.edu.vn</code> (TDTU, Bách Khoa, CNTT, KHTN, Kinh Tế...) hoặc <code>.edu</code> &rarr; Tự động cấp quyền <strong>STUDENT</strong>.</span>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-user text-indigo-400 mt-0.5 text-sm"></i>
+                            <span><strong>Tài khoản Cá nhân:</strong> Đăng nhập bằng Gmail cá nhân (<code>@gmail.com</code>...) &rarr; Tự động cấp quyền <strong>PERSONAL</strong>.</span>
+                        </div>
+                        <div class="flex items-start gap-2.5 text-rose-400 pt-2 border-t border-slate-800">
+                            <i class="fa-solid fa-lock text-rose-400 mt-0.5 text-sm"></i>
+                            <span class="text-[11px] leading-relaxed"><strong>Bảo mật cấp cao:</strong> Hệ thống chỉ chấp nhận Token được ký điện tử bởi Google Identity Provider. Đã vô hiệu hóa mọi hình thức gõ email trực tiếp để phòng chống tấn công mạo danh (Authentication Bypass).</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MÀN HÌNH 2: BẢNG ĐIỀU KHIỂN BẢO MẬT (CHỈ XUẤT HIỆN SAU KHI ĐĂNG NHẬP)     -->
+        <!-- ========================================================================= -->
+        <div id="viewDashboard" class="hidden space-y-8">
+            
+            <!-- User Status Header Card -->
+            <div class="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="flex items-center space-x-4">
+                    <img id="userAvatar" src="" alt="Avatar" class="w-16 h-16 rounded-2xl border-2 border-indigo-500/80 shadow-lg object-cover bg-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <h2 id="userName" class="text-xl font-bold text-white">---</h2>
+                            <span id="badgeAccountType" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-900/80 text-emerald-300 border border-emerald-500/30">
+                                ---
+                            </span>
+                            <span id="badgeRole" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-900/60 text-indigo-300 border border-indigo-500/30">
+                                ROLE_USER
+                            </span>
+                        </div>
+                        <p id="userEmail" class="text-xs text-slate-300 font-mono mt-0.5">---</p>
+                        <p class="text-[11px] text-emerald-400 flex items-center gap-1.5 mt-1">
+                            <i class="fa-solid fa-circle-check"></i> Đã cấp quyền truy cập các API Private bảo mật
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Button in Header -->
+                <div class="flex items-center gap-3">
+                    <button onclick="logout()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-rose-600/30 transition">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span>Đăng xuất (Thu hồi Token)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Two-Column Layout for Authenticated User -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left: Identity Details & Account Linking (5 cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Linked Accounts & Unlink Management -->
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-link text-indigo-400"></i>
+                                Quản lý Liên kết Danh tính
+                            </h3>
+                            <button onclick="checkLinkedAccounts()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                                <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Làm mới
+                            </button>
+                        </div>
+
+                        <!-- Linked List -->
+                        <div>
+                            <span class="text-xs font-medium text-slate-400 block mb-2">Nhà cung cấp đã liên kết:</span>
+                            <div id="linkedAccountsList" class="space-y-2">
+                                <!-- Dynamic List -->
+                            </div>
+                        </div>
+
+                        <!-- Backup Password Section -->
+                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                            <label class="block text-xs font-semibold text-slate-300">
+                                Mật khẩu dự phòng:
+                            </label>
+                            <p class="text-[11px] text-slate-400">
+                                (Ràng buộc bảo mật: Bắt buộc phải có mật khẩu trước khi hủy liên kết Google để tránh mất tài khoản).
+                            </p>
+                            <div class="flex gap-2">
+                                <input type="password" id="inputBackupPassword" placeholder="Nhập mật khẩu (>= 6 ký tự)" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500">
+                                <button onclick="setBackupPassword()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition">
+                                    Lưu
+                                </button>
+                            </div>
+                            <p id="passwordStatus" class="text-[11px] mt-1">Đang kiểm tra...</p>
+                        </div>
+
+                        <!-- Danger Zone: Unlink Button -->
+                        <div class="pt-3 border-t border-slate-800/80">
+                            <button onclick="unlinkGoogleAccount()" class="w-full py-2.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                <i class="fa-solid fa-link-slash"></i>
+                                Hủy liên kết Google & Thu hồi Token
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- JWT Token Management Card -->
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-key text-amber-400"></i>
+                                Mã JWT Access Token (Stateless)
+                            </h3>
+                            <button onclick="copyToken()" class="text-xs text-slate-400 hover:text-white" title="Copy Token">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800/80 font-mono text-[11px] break-all max-h-32 overflow-y-auto text-emerald-400" id="tokenDisplay">
+                            Chưa có token.
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right: Protected API Suite & Live Console (7 cols) -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Protected API Test Suite -->
+                    <!-- Protected API Test Suite (Clean, Spacious & Professional) -->
+                    <div class="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-vial-circle-check text-emerald-400"></i>
+                                    Kiểm Thử Các API Hệ Thống
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Gọi trực tiếp các endpoint để kiểm chứng cơ chế cấp quyền và phòng vệ.</p>
+                            </div>
+                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                                4 API Cốt lõi
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            <!-- Test 1: Private with Token -->
+                            <div class="p-4 rounded-2xl bg-slate-950 border border-blue-500/30 flex flex-col justify-between space-y-3 hover:border-blue-500/50 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-500/20 text-blue-300">GET (PRIVATE)</span>
+                                        <span class="text-[10px] text-emerald-400 font-mono font-bold">200 OK</span>
+                                    </div>
+                                    <code class="text-xs text-blue-300 font-semibold block my-1">/api/users/me</code>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed">Gửi kèm Bearer Token. Server giải mã JWT và đọc hồ sơ từ SQL Server.</p>
+                                </div>
+                                <button onclick="testPrivateApiWithToken()" class="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+                                    <i class="fa-solid fa-lock-open text-xs"></i>
+                                    Gọi Có Token (200 OK)
+                                </button>
+                            </div>
+
+                            <!-- Test 2: Private without Token -->
+                            <div class="p-4 rounded-2xl bg-slate-950 border border-rose-500/30 flex flex-col justify-between space-y-3 hover:border-rose-500/50 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/20 text-rose-300">GET (PRIVATE)</span>
+                                        <span class="text-[10px] text-rose-400 font-mono font-bold">403 FORBIDDEN</span>
+                                    </div>
+                                    <code class="text-xs text-rose-300 font-semibold block my-1">/api/users/me</code>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed">Không gửi Token. Chứng minh Spring Security chặn đứng ngay tại cổng.</p>
+                                </div>
+                                <button onclick="testPrivateApiWithoutToken()" class="w-full py-2.5 px-3 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 rounded-xl text-xs font-bold border border-rose-500/40 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-shield-virus text-xs"></i>
+                                    Thử Chặn Thiếu Token (403)
+                                </button>
+                            </div>
+
+                            <!-- Test 3: Public Google URL -->
+                            <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 flex flex-col justify-between space-y-3 hover:border-emerald-500/50 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300">GET (PUBLIC)</span>
+                                        <span class="text-[10px] text-slate-400 font-mono">200 OK</span>
+                                    </div>
+                                    <code class="text-xs text-emerald-300 font-semibold block my-1">/api/auth/google/url</code>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed">API công khai sinh URL ủy quyền Google OAuth 2.0 chuẩn RFC 6749.</p>
+                                </div>
+                                <button onclick="testPublicApi()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-2">
+                                    <i class="fa-brands fa-google text-red-400 text-xs"></i>
+                                    Lấy URL Đăng Nhập Google
+                                </button>
+                            </div>
+
+                            <!-- Test 4: Refresh Token -->
+                            <div class="p-4 rounded-2xl bg-slate-950 border border-purple-500/30 flex flex-col justify-between space-y-3 hover:border-purple-500/50 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-500/20 text-purple-300">POST (PUBLIC)</span>
+                                        <span class="text-[10px] text-slate-400 font-mono">200 OK</span>
+                                    </div>
+                                    <code class="text-xs text-purple-300 font-semibold block my-1">/api/auth/refresh-token</code>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed">Đổi Refresh Token lấy Access Token mới mà không cần đăng nhập lại.</p>
+                                </div>
+                                <button onclick="testRefreshToken()" class="w-full py-2.5 px-3 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-xl text-xs font-bold border border-purple-500/40 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                                    Gia Hạn Access Token
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Live API Console -->
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-terminal text-cyan-400"></i>
+                                Nhật ký Phản hồi API Thời gian Thực
+                            </h3>
+                            <button onclick="clearConsole()" class="text-xs text-slate-400 hover:text-slate-200">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Xóa log
+                            </button>
+                        </div>
+                        <div id="consoleLog" class="bg-slate-950 rounded-xl p-4 border border-slate-800/80 font-mono text-xs overflow-y-auto max-h-72 space-y-3">
+                            <div class="text-slate-400 italic">Đã đăng nhập thành công. Bấm các nút kiểm thử ở trên để xem phản hồi từ máy chủ...</div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: Cấu hình Google Credentials (Rõ ràng & Dễ nhìn) -->
+    <div id="configModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                        <i class="fa-brands fa-google text-red-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Cấu hình Google OAuth 2.0</h3>
+                        <p class="text-[11px] text-slate-400">Kiểm tra & Cập nhật Client ID / Secret</p>
+                    </div>
+                </div>
+                <button onclick="toggleConfigModal()" class="w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Status Banner -->
+            <div id="cfgStatusBanner" class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="font-semibold" id="cfgStatusText">Đã kết nối với Google Cloud Platform</span>
+                </div>
+                <button onclick="pingGoogleConnection()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-[11px] font-bold text-emerald-200 transition">
+                    Kiểm tra kết nối
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>Google Client ID:</span>
+                        <button onclick="copyToClipboard(document.getElementById('cfgClientId').value, 'Đã copy Client ID')" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-normal">
+                            <i class="fa-regular fa-copy"></i> Sao chép
+                        </button>
+                    </label>
+                    <input type="text" id="cfgClientId" placeholder="xxxx.apps.googleusercontent.com" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>Google Client Secret:</span>
+                        <span id="cfgSecretStatus" class="text-[10px] text-emerald-400 font-normal">● Đã lưu trên máy chủ</span>
+                    </label>
+                    <input type="password" id="cfgClientSecret" placeholder="•••••••••••••••••••••••• (Để trống nếu giữ nguyên mật khẩu cũ)" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+                    <p class="text-[11px] text-slate-400 mt-1">Mật khẩu bí mật được bảo vệ tại server. Chỉ nhập khi bạn muốn đổi sang khóa mới.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>Authorized Redirect URI (Đăng ký trên Google Console):</span>
+                        <button onclick="copyToClipboard(document.getElementById('cfgRedirectUri').value, 'Đã copy Redirect URI')" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-normal">
+                            <i class="fa-regular fa-copy"></i> Sao chép
+                        </button>
+                    </label>
+                    <input type="text" id="cfgRedirectUri" value="http://localhost:8080/api/auth/google/callback" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-300 font-mono" readonly>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800/80">
+                <button onclick="toggleConfigModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">Đóng</button>
+                <button onclick="saveGoogleConfig()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition shadow-lg shadow-indigo-600/30">Lưu cấu hình</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const API_BASE = window.location.origin;
+        let currentAccessToken = localStorage.getItem("accessToken") || null;
+        let currentRefreshToken = localStorage.getItem("refreshToken") || null;
+        let currentUser = null;
+
+        // Quản lý hiển thị giữa 2 Màn hình
+        function showLoginView() {
+            document.getElementById("viewLogin").classList.remove("hidden");
+            document.getElementById("viewDashboard").classList.add("hidden");
+            document.getElementById("btnNavLogout").classList.add("hidden");
+            
+            const navStatus = document.getElementById("navAuthStatus");
+            navStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Chưa xác thực</span>`;
+            navStatus.className = "px-3 py-1 text-xs font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700/80 flex items-center gap-1.5";
+        }
+
+        function showDashboardView(user) {
+            document.getElementById("viewLogin").classList.add("hidden");
+            document.getElementById("viewDashboard").classList.remove("hidden");
+            document.getElementById("btnNavLogout").classList.remove("hidden");
+
+            const navStatus = document.getElementById("navAuthStatus");
+            navStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Đã đăng nhập: ${user.email}</span>`;
+            navStatus.className = "px-3 py-1 text-xs font-semibold rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5";
+        }
+
+        // Tự động kiểm tra tham số ?code= từ Google Redirect khi trang tải xong
+        window.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get("code");
+            const error = urlParams.get("error");
+
+            if (error) {
+                alert("Google OAuth từ chối xác thực: " + error);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                showLoginView();
+                return;
+            }
+
+            if (code) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                handleGoogleCallback(code);
+                return;
+            }
+
+            // Kiểm tra cấu hình Google
+            checkGoogleConfig();
+
+            // Nếu đã lưu token trước đó, kiểm tra token có còn hợp lệ không
+            if (currentAccessToken) {
+                loadUserProfile();
+            } else {
+                showLoginView();
+            }
+        });
+
+        // 1. Chuyển hướng sang Google Login thật (OAuth 2.0 Authorization Code Flow)
+        async function loginWithGoogle() {
+            try {
+                const redirectUri = window.location.origin + "/api/auth/google/callback";
+                const res = await fetch(`${API_BASE}/api/auth/google/url?redirectUri=${encodeURIComponent(redirectUri)}`);
+                const json = await res.json();
+
+                if (json.success && json.data && json.data.url) {
+                    window.location.href = json.data.url;
+                } else {
+                    alert("Không thể khởi tạo đường dẫn đăng nhập Google.");
+                }
+            } catch (err) {
+                alert("Lỗi kết nối tới máy chủ: " + err.message);
+            }
+        }
+
+        // 4. Nhận mã Code từ Google Redirect
+        async function handleGoogleCallback(code) {
+            try {
+                const redirectUri = window.location.origin + "/api/auth/google/callback";
+                const res = await fetch(`${API_BASE}/api/auth/google/callback`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: code, redirectUri: redirectUri })
+                });
+                const json = await res.json();
+
+                if (json.success && json.data) {
+                    saveTokens(json.data.accessToken, json.data.refreshToken);
+                    renderProfile(json.data.user);
+                    logConsole("POST /api/auth/google/callback", "PUBLIC", res.status, json);
+                } else {
+                    alert("Lỗi xác thực Google: " + json.message);
+                    showLoginView();
+                }
+            } catch (err) {
+                alert("Lỗi xử lý callback: " + err.message);
+                showLoginView();
+            }
+        }
+
+        // 5. Tải Profile (Xác minh Token còn sống hay đã bị thu hồi)
+        async function loadUserProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me`, {
+                    headers: { "Authorization": `Bearer ${currentAccessToken}` }
+                });
+                const json = await res.json();
+                if (res.ok && json.success) {
+                    renderProfile(json.data);
+                    updateTokenUI();
+                } else {
+                    // Token hết hạn hoặc nằm trong blacklist
+                    clearAllData();
+                    showLoginView();
+                }
+            } catch (err) {
+                clearAllData();
+                showLoginView();
+            }
+        }
+
+        // 6. Hiển thị Profile sau khi đăng nhập thành công
+        function renderProfile(user) {
+            currentUser = user;
+            showDashboardView(user);
+
+            document.getElementById("userName").textContent = user.fullName || "Người dùng";
+            document.getElementById("userEmail").textContent = user.email || "";
+            document.getElementById("userAvatar").src = user.avatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.fullName || "User");
+
+            // Phân loại tài khoản
+            const badgeAcc = document.getElementById("badgeAccountType");
+            if (user.accountType === "STUDENT") {
+                badgeAcc.textContent = "🎓 Sinh viên TDTU";
+                badgeAcc.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-900/80 text-emerald-300 border border-emerald-500/30";
+            } else {
+                badgeAcc.textContent = "👤 Gmail Cá nhân";
+                badgeAcc.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-900/80 text-blue-300 border border-blue-500/30";
+            }
+
+            document.getElementById("badgeRole").textContent = user.role || "ROLE_USER";
+
+            // Hiển thị trạng thái mật khẩu dự phòng
+            const pwdStatus = document.getElementById("passwordStatus");
+            if (user.hasPassword) {
+                pwdStatus.innerHTML = "<span class='text-emerald-400 font-semibold'><i class='fa-solid fa-check'></i> Đã có mật khẩu dự phòng. Đủ điều kiện hủy Google an toàn.</span>";
+            } else {
+                pwdStatus.innerHTML = "<span class='text-amber-400 font-semibold'><i class='fa-solid fa-triangle-exclamation'></i> Chưa có mật khẩu dự phòng! (Không thể hủy Google nếu chưa có).</span>";
+            }
+
+            renderLinkedAccounts(user.linkedAccounts);
+        }
+
+        function renderLinkedAccounts(accounts) {
+            const list = document.getElementById("linkedAccountsList");
+            list.innerHTML = "";
+            if (!accounts || accounts.length === 0) {
+                list.innerHTML = "<div class='p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-center text-xs text-slate-400 italic'>Chưa có tài khoản nào được liên kết.</div>";
+                return;
+            }
+
+            accounts.forEach(acc => {
+                const div = document.createElement("div");
+                div.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs hover:border-slate-700 transition";
+                const linkedTime = acc.linkedAt ? new Date(acc.linkedAt).toLocaleString('vi-VN') : 'Đã kết nối';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                            <i class="fa-brands fa-google text-red-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white">${acc.provider}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">Đang liên kết</span>
+                            </div>
+                            <span class="text-slate-300 text-[11px] block font-mono">${acc.providerEmail || ""}</span>
+                            <span class="text-[10px] text-slate-400">Thời gian: ${linkedTime} • ID: ${acc.providerUserId ? acc.providerUserId.substring(0, 12) + '...' : ''}</span>
+                        </div>
+                    </div>
+                    <button onclick="unlinkGoogleAccount()" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition flex items-center gap-1">
+                        <i class="fa-solid fa-link-slash text-[10px]"></i> Hủy
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // 7. Các nút kiểm thử 4 API Cốt lõi
+        // 1. Gọi Private API có Token (200 OK)
+        async function testPrivateApiWithToken() {
+            if (!currentAccessToken) {
+                alert("Bạn chưa có Token. Hãy đăng nhập trước!");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me`, {
+                    headers: { "Authorization": `Bearer ${currentAccessToken}` }
+                });
+                const json = await res.json();
+                logConsole("GET /api/users/me (CÓ BEARER TOKEN)", "PRIVATE", res.status, json);
+            } catch (err) {
+                logConsole("GET /api/users/me", "ERROR", 500, err.message);
+            }
+        }
+
+        // 2. Thử Chặn khi không gửi Token (403 Forbidden)
+        async function testPrivateApiWithoutToken() {
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me`);
+                let json;
+                try {
+                    json = await res.json();
+                } catch(e) {
+                    json = { status: res.status, error: "Forbidden (Bị chặn bởi Spring Security Filter Chain)" };
+                }
+                logConsole("GET /api/users/me (KHÔNG GỬI TOKEN)", "PRIVATE", res.status, json);
+            } catch (err) {
+                logConsole("GET /api/users/me", "ERROR", 500, err.message);
+            }
+        }
+
+        // 3. Gọi Public API lấy URL đăng nhập Google (200 OK)
+        async function testPublicApi() {
+            try {
+                const redirectUri = window.location.origin + "/api/auth/google/callback";
+                const res = await fetch(`${API_BASE}/api/auth/google/url?redirectUri=${encodeURIComponent(redirectUri)}`);
+                const json = await res.json();
+                logConsole("GET /api/auth/google/url (LẤY URL GOOGLE)", "PUBLIC", res.status, json);
+            } catch (err) {
+                logConsole("GET /api/auth/google/url", "ERROR", 500, err.message);
+            }
+        }
+
+        // 4. Gia hạn phiên làm việc qua Refresh Token (200 OK)
+        async function testRefreshToken() {
+            if (!currentRefreshToken) {
+                alert("Chưa có Refresh Token!");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/refresh-token`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refreshToken: currentRefreshToken })
+                });
+                const json = await res.json();
+                logConsole("POST /api/auth/refresh-token (GIA HẠN TOKEN)", "PUBLIC", res.status, json);
+                if (json.success && json.data) {
+                    saveTokens(json.data.accessToken, json.data.refreshToken);
+                    alert("Đã làm mới Access Token thành công!");
+                }
+            } catch (err) {
+                logConsole("POST /api/auth/refresh-token", "ERROR", 500, err.message);
+            }
+        }
+
+        // 8. Đặt mật khẩu dự phòng
+        async function setBackupPassword() {
+            const pwd = document.getElementById("inputBackupPassword").value;
+            if (!pwd || pwd.length < 6) {
+                alert("Mật khẩu phải có tối thiểu 6 ký tự!");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me/password`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentAccessToken}`
+                    },
+                    body: JSON.stringify({ password: pwd })
+                });
+                const json = await res.json();
+                logConsole("POST /api/users/me/password", "PRIVATE", res.status, json);
+                if (json.success) {
+                    alert("Đã thiết lập mật khẩu dự phòng thành công!");
+                    document.getElementById("inputBackupPassword").value = "";
+                    loadUserProfile();
+                } else {
+                    alert("Lỗi: " + json.message);
+                }
+            } catch (err) {
+                logConsole("POST /api/users/me/password", "ERROR", 500, err.message);
+            }
+        }
+
+        // 9. Kiểm tra danh sách liên kết
+        async function checkLinkedAccounts() {
+            if (!currentAccessToken) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me/linked-accounts`, {
+                    headers: { "Authorization": `Bearer ${currentAccessToken}` }
+                });
+                const json = await res.json();
+                logConsole("GET /api/users/me/linked-accounts", "PRIVATE", res.status, json);
+                if (json.success) {
+                    renderLinkedAccounts(json.data);
+                }
+            } catch (err) {
+                logConsole("GET /api/users/me/linked-accounts", "ERROR", 500, err.message);
+            }
+        }
+
+        // 10. Hủy liên kết Google & Thu hồi Token
+        async function unlinkGoogleAccount() {
+            if (!confirm("Bạn có chắc chắn muốn HỦY liên kết tài khoản Google này không?")) {
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me/linked-accounts/google`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${currentAccessToken}` }
+                });
+                const json = await res.json();
+                logConsole("DELETE /api/users/me/linked-accounts/google", "PRIVATE", res.status, json);
+                if (json.success) {
+                    alert("Đã hủy liên kết Google và thu hồi Token thành công!");
+                    loadUserProfile();
+                } else {
+                    alert("Không thể hủy liên kết: " + json.message);
+                }
+            } catch (err) {
+                logConsole("DELETE /api/users/me/linked-accounts/google", "ERROR", 500, err.message);
+            }
+        }
+
+        // 11. Đăng xuất: Vô hiệu hóa Token trên Server & Khóa màn hình
+        async function logout() {
+            if (currentAccessToken) {
+                try {
+                    const res = await fetch(`${API_BASE}/api/auth/logout`, {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${currentAccessToken}` }
+                    });
+                    const json = await res.json();
+                    console.log("Đã gửi lệnh logout lên server:", json);
+                } catch (err) {
+                    console.error("Logout request failed:", err);
+                }
+            }
+            clearAllData();
+            showLoginView();
+            alert("Đã đăng xuất an toàn! Toàn bộ Token đã bị vô hiệu hóa và màn hình đã được khóa lại.");
+        }
+
+        function saveTokens(accessToken, refreshToken) {
+            currentAccessToken = accessToken;
+            currentRefreshToken = refreshToken;
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
+            updateTokenUI();
+        }
+
+        function updateTokenUI() {
+            const display = document.getElementById("tokenDisplay");
+            if (currentAccessToken) {
+                display.textContent = currentAccessToken;
+            } else {
+                display.textContent = "Chưa có token.";
+            }
+        }
+
+        function clearAllData() {
+            currentAccessToken = null;
+            currentRefreshToken = null;
+            currentUser = null;
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            updateTokenUI();
+        }
+
+        function copyToken() {
+            if (!currentAccessToken) return;
+            navigator.clipboard.writeText(currentAccessToken);
+            alert("Đã copy Bearer Token vào clipboard!");
+        }
+
+        function clearConsole() {
+            document.getElementById("consoleLog").innerHTML = "<div class='text-slate-400 italic'>Log đã được xóa.</div>";
+        }
+
+        function logConsole(endpoint, type, status, data) {
+            const consoleDiv = document.getElementById("consoleLog");
+            const time = new Date().toLocaleTimeString();
+            const colorStatus = (status >= 200 && status < 300) ? "text-emerald-400" : "text-rose-400";
+            let badgeColor = "bg-slate-500/20 text-slate-300";
+            if (type === "ATTACKER") badgeColor = "bg-rose-500/20 text-rose-300 border border-rose-500/30";
+            else if (type === "SOA-APP") badgeColor = "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+            else if (type === "USER") badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            else if (type === "REPLAY") badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+            else if (type === "GOOGLE") badgeColor = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+            else if (type === "PUBLIC") badgeColor = "bg-emerald-500/20 text-emerald-400";
+            else if (type === "PRIVATE") badgeColor = "bg-blue-500/20 text-blue-400";
+
+            const entry = document.createElement("div");
+            entry.className = "border-b border-slate-800/80 pb-2";
+            entry.innerHTML = `
+                <div class="flex items-center justify-between text-[11px] mb-1">
+                    <span class="text-slate-400">[${time}] <strong class="text-white">${endpoint}</strong></span>
+                    <div>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${type}</span>
+                        <span class="ml-1 font-bold ${colorStatus}">HTTP ${status}</span>
+                    </div>
+                </div>
+                <pre class="text-[11px] text-slate-300 overflow-x-auto bg-slate-900/90 p-2 rounded">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            consoleDiv.insertBefore(entry, consoleDiv.firstChild);
+        }
+
+        function copyToClipboard(text, successMsg) {
+            if (!text) return;
+            navigator.clipboard.writeText(text);
+            alert(successMsg || "Đã sao chép vào bộ nhớ tạm!");
+        }
+
+        async function pingGoogleConnection() {
+            try {
+                const res = await fetch("https://accounts.google.com/.well-known/openid-configuration");
+                if (res.ok) {
+                    alert("✅ Kết nối máy chủ Google OAuth 2.0 Identity Server THÀNH CÔNG!\nCổng ủy quyền & trao đổi mã của Google đang hoạt động hoàn hảo.");
+                } else {
+                    alert("⚠️ Phản hồi từ Google không bình thường (Mã: " + res.status + ")");
+                }
+            } catch (err) {
+                alert("❌ Không thể kết nối tới Google: " + err.message);
+            }
+        }
+
+        // Modal Cấu hình Google
+        function toggleConfigModal() {
+            const modal = document.getElementById("configModal");
+            modal.classList.toggle("hidden");
+            if (!modal.classList.contains("hidden")) {
+                checkGoogleConfig();
+            }
+        }
+
+        async function checkGoogleConfig() {
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/google/config`);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    if (json.data.clientId && !json.data.clientId.includes("YOUR_GOOGLE_CLIENT_ID")) {
+                        document.getElementById("cfgClientId").value = json.data.clientId;
+                    }
+                    if (json.data.redirectUri) {
+                        document.getElementById("cfgRedirectUri").value = json.data.redirectUri;
+                    }
+                    const secretStatus = document.getElementById("cfgSecretStatus");
+                    if (secretStatus) {
+                        if (json.data.hasSecret) {
+                            secretStatus.innerHTML = "● Đã lưu trên máy chủ";
+                            secretStatus.className = "text-[10px] text-emerald-400 font-medium";
+                        } else {
+                            secretStatus.innerHTML = "● Chưa thiết lập";
+                            secretStatus.className = "text-[10px] text-amber-400 font-medium";
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Lỗi kiểm tra Google config:", err);
+            }
+        }
+
+        async function saveGoogleConfig() {
+            const clientId = (document.getElementById("cfgClientId").value || "").trim();
+            const clientSecret = (document.getElementById("cfgClientSecret").value || "").trim();
+            const redirectUri = (document.getElementById("cfgRedirectUri").value || "").trim();
+
+            if (!clientId) {
+                alert("Vui lòng nhập Google Client ID!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/google/config`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clientId, clientSecret, redirectUri })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    alert("Đã cập nhật cấu hình Google thành công!");
+                    toggleConfigModal();
+                    checkGoogleConfig();
+                } else {
+                    alert("Lỗi: " + json.message);
+                }
+            } catch (err) {
+                alert("Lỗi gửi request: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

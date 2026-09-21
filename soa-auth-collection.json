@@ -1,0 +1,281 @@
+{
+  "info": {
+    "_postman_id": "soa-group1-google-oauth2",
+    "name": "SOA Group 1 - Google OAuth 2.0 & JWT Auth API",
+    "description": "Bộ sưu tập API hoàn chỉnh phục vụ kiểm thử và báo cáo Seminar Kiến trúc Hướng dịch vụ (SOA). Bao gồm phân định rõ ràng Public API và Private API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1MjRoMDEyMkBzdHVkZW50LnRkdHUuZWR1LnZuIiwicm9sZSI6IlJPTEVfVVNFUiIsImFjY291bnRUeXBlIjoiU1RVREVOVCIsImp0aSI6IjIyYjAxZjcxLTFkMGQtNDI3OS1iNTU0LTQ4NWRmYTU3NjU2MiIsImlhdCI6MTc4OTk5NjE4OSwiZXhwIjoxNzkwMDgyNTg5fQ.9IOFDHYlS8i3x116Ip82Ntn8FChXtNIt48J49fsgQmWWzcgnciDcwLc7Bz5fF8dO",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1MjRoMDEyMkBzdHVkZW50LnRkdHUuZWR1LnZuIiwidHlwZSI6IlJFRlJFU0giLCJqdGkiOiI1NjY0YTMyMS0zMzhiLTRlZmYtOTI4OC1mZjYyYTVlMGNmYTYiLCJpYXQiOjE3ODk5OTYxODksImV4cCI6MTc5MDYwMDk4OX0.bNb0y4eXw5P05IxQmgu8J7ssqwhdY_E6F_O3HTTZG7YaOAtDaUTTaUILTeY6RB1S",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Public APIs (Không cần Token)",
+      "item": [
+        {
+          "name": "1.1. Lấy Google OAuth2 Login URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "url"]
+            },
+            "description": "Sinh đường dẫn đăng nhập Google OAuth 2.0 chuẩn với Client ID, Scopes (openid, profile, email), Redirect URI."
+          }
+        },
+        {
+          "name": "1.2. Xem Cấu hình Google Client ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "config"]
+            },
+            "description": "Kiểm tra xem Client ID đã cấu hình hay chưa."
+          }
+        },
+        {
+          "name": "1.3. Xem Trực tiếp Cơ sở dữ liệu SQL Server (Database Viewer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/database-viewer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "public", "database-viewer"]
+            },
+            "description": "Lấy ảnh chụp trạng thái toàn bộ bảng users và user_identities trực tiếp từ Microsoft SQL Server (Đã che giấu thông tin nhạy cảm)."
+          }
+        },
+        {
+          "name": "1.4. Đổi Authorization Code lấy Cặp JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+                  "    console.log('Saved accessToken & refreshToken to variables!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"4/0Aean...[MÃ_CODE_TỪ_GOOGLE]\",\n  \"redirectUri\": \"http://localhost:8080/api/auth/google/callback\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "google", "callback"]
+            },
+            "description": "Nhận Authorization Code từ Google sau khi đăng nhập và đổi lấy cặp JWT (Access Token & Refresh Token)."
+          }
+        },
+        {
+          "name": "1.5. Cấp lại Access Token (Refresh Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "    console.log('Updated new accessToken!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "description": "Dùng Refresh Token hợp lệ để đổi lấy một Access Token mới mà không cần bắt người dùng đăng nhập lại."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Private APIs (Bảo vệ bằng Spring Security JWT)",
+      "item": [
+        {
+          "name": "2.1. [TEST BẢO MẬT CHẶN] Gọi Private API KHÔNG gửi Token (Kỳ vọng: 403 Forbidden)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            },
+            "description": "Thử nghiệm không đính kèm Header Authorization. Spring Security Filter Chain sẽ lập tức chặn lại và trả về HTTP 403 Forbidden."
+          }
+        },
+        {
+          "name": "2.2. [TRUY CẬP THÀNH CÔNG] Lấy Profile người dùng (CÓ Token) (Kỳ vọng: 200 OK)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            },
+            "description": "Gửi kèm Bearer Token hợp lệ. Spring Security xác thực thành công và cho phép lấy hồ sơ người dùng."
+          }
+        },
+        {
+          "name": "2.3. Xem danh sách nhà cung cấp liên kết (Linked Accounts)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/linked-accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "linked-accounts"]
+            },
+            "description": "Xem tài khoản hiện tại đang liên kết với những nhà cung cấp danh tính nào (ví dụ GOOGLE)."
+          }
+        },
+        {
+          "name": "2.4. Thiết lập mật khẩu dự phòng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"SecurePass123@\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "password"]
+            },
+            "description": "Tạo mật khẩu cục bộ dự phòng mã hóa BCrypt. Đây là điều kiện tiên quyết bắt buộc trước khi được phép gỡ liên kết Google."
+          }
+        },
+        {
+          "name": "2.5. Hủy liên kết Google & Thu hồi quyền",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/linked-accounts/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "linked-accounts", "google"]
+            },
+            "description": "Gỡ bỏ danh tính Google khỏi tài khoản và gửi yêu cầu thu hồi Token sang máy chủ Google."
+          }
+        },
+        {
+          "name": "2.6. Đăng xuất & Đưa Token vào Danh sách Đen (Blacklist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Đưa Access Token hiện tại vào TokenBlacklistService. Kể từ thời điểm này, token sẽ bị từ chối dù chưa hết hạn."
+          }
+        },
+        {
+          "name": "2.7. [TEST THU HỒI TOKEN] Thử gọi lại API với Token vừa Đăng xuất (Kỳ vọng: 403 Forbidden)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me"]
+            },
+            "description": "Chứng minh rằng dù Access Token có chữ ký đúng và chưa hết hạn, JwtAuthenticationFilter vẫn phát hiện token đã nằm trong Blacklist và chặn 403 ngay lập tức."
+          }
+        }
+      ]
+    }
+  ]
+}
+

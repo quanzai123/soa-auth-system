@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Server Database Viewer - soa-auth-system</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 30px 20px;
+  }
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #22c55e;
+  }
+  .nav-links {
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    background: #2563eb;
+    border-color: #3b82f6;
+    color: #fff;
+  }
+  .btn-primary {
+    background: #2563eb;
+    border-color: #3b82f6;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .meta-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .meta-label {
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .meta-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .guide-box {
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 28px;
+  }
+  .guide-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .guide-steps {
+    font-size: 13.5px;
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+
+  .section-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .table-wrapper {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  th {
+    background: #0f172a;
+    color: #94a3b8;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid #334155;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #e2e8f0;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-student { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+  .badge-personal { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+  .badge-google { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1><span>🗄️</span> SQL Server Live Database Viewer</h1>
+      <p style="color: #94a3b8; font-size: 14px; margin-top: 4px;">Xem trực tiếp dữ liệu từ Microsoft SQL Server (Docker) theo thời gian thực</p>
+    </div>
+    <div class="nav-links">
+      <button class="btn btn-primary" onclick="loadData()">🔄 Làm mới dữ liệu</button>
+      <a href="/" class="btn">🏠 Trang chủ Đăng nhập</a>
+      <a href="/docs.html" class="btn">📘 Tài liệu Kỹ thuật</a>
+    </div>
+  </header>
+
+  <div class="meta-grid">
+    <div class="meta-card">
+      <div class="meta-label">DATABASE & HOST</div>
+      <div class="meta-val" style="color: #38bdf8;">google_login_db</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">localhost:1433 (Docker)</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">TRẠNG THÁI KẾT NỐI</div>
+      <div class="status-badge" style="margin-top: 4px;">
+        <span class="status-dot"></span> ĐANG KẾT NỐI (ONLINE)
+      </div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">TỔNG TÀI KHOẢN (USERS)</div>
+      <div class="meta-val" id="totalUsersCount" style="color: #4ade80;">--</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">LIÊN KẾT GOOGLE (IDENTITIES)</div>
+      <div class="meta-val" id="totalIdentitiesCount" style="color: #c084fc;">--</div>
+    </div>
+  </div>
+
+  <div class="guide-box">
+    <div class="guide-title">
+      <span>💡</span> Hướng dẫn mở xem trực tiếp trên DBeaver:
+    </div>
+    <div class="guide-steps">
+      Nếu trên <strong>DBeaver</strong> bạn chưa thấy bảng <code>users</code>, nguyên nhân là vì DBeaver đang mở mặc định vào database <code>master</code> (chứ chưa vào <code>google_login_db</code>).<br>
+      👉 <strong>Cách xem nhanh:</strong> Trong DBeaver, hãy mở rộng mục: <strong>localhost</strong> &rarr; <strong>Databases</strong> &rarr; <strong>google_login_db</strong> &rarr; <strong>Schemas</strong> &rarr; <strong>dbo</strong> &rarr; <strong>Tables</strong> &rarr; Bấm chuột phải vào <strong>users</strong> &rarr; Chọn <strong>View Data</strong> (hoặc nhấn <code>F5</code> để Refresh).<br>
+      👉 Hoặc mở một tab <strong>SQL Editor</strong> mới và chạy: <code>USE google_login_db; SELECT * FROM users;</code>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span>BẢNG 1: users (Danh sách Người Dùng & Hồ Sơ Gốc)</span>
+    <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">Bảng chính lưu email, role và mật khẩu dự phòng</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">ID</th>
+          <th>Email</th>
+          <th>Họ và Tên</th>
+          <th style="width: 140px;">Loại Tài Khoản</th>
+          <th style="width: 120px;">Quyền (Role)</th>
+          <th>Mật Khẩu Hash (BCrypt)</th>
+          <th style="width: 170px;">Thời Gian Tạo</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <tr><td colspan="7" style="text-align: center; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">
+    <span>BẢNG 2: user_identities (Danh sách Định Danh Google OAuth 2.0)</span>
+    <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">Bảng lưu Google Subject ID (sub) bất biến</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">ID</th>
+          <th style="width: 80px;">User ID</th>
+          <th style="width: 120px;">Provider</th>
+          <th>Google Subject ID (Provider User ID)</th>
+          <th>Provider Email</th>
+          <th style="width: 170px;">Thời Điểm Liên Kết</th>
+        </tr>
+      </thead>
+      <tbody id="identitiesTableBody">
+        <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function loadData() {
+    try {
+      const res = await fetch('/api/public/database-viewer');
+      const json = await res.json();
+      if (!json.success) {
+        alert('Lỗi tải dữ liệu: ' + json.message);
+        return;
+      }
+
+      const data = json.data;
+      document.getElementById('totalUsersCount').innerText = data.totalUsers;
+      document.getElementById('totalIdentitiesCount').innerText = data.totalIdentities;
+
+      // Render Users Table
+      const usersTbody = document.getElementById('usersTableBody');
+      if (data.users.length === 0) {
+        usersTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">Chưa có người dùng nào</td></tr>';
+      } else {
+        usersTbody.innerHTML = data.users.map(u => {
+          const isStudent = u.accountType === 'STUDENT';
+          const typeBadge = isStudent 
+            ? '<span class="badge badge-student">STUDENT (ĐẠI HỌC)</span>' 
+            : '<span class="badge badge-personal">PERSONAL</span>';
+          const passHash = u.passwordHash 
+            ? `<code>${u.passwordHash.substring(0, 20)}...</code>` 
+            : '<span style="color: #64748b;">Chưa thiết lập</span>';
+          
+          return `
+            <tr>
+              <td><strong>${u.id}</strong></td>
+              <td><code>${u.email}</code></td>
+              <td><strong>${u.fullName || '--'}</strong></td>
+              <td>${typeBadge}</td>
+              <td><span class="badge" style="background:rgba(255,255,255,0.1); color:#fff;">${u.role}</span></td>
+              <td>${passHash}</td>
+              <td style="color: #94a3b8; font-size: 12.5px;">${u.createdAt ? u.createdAt.replace('T', ' ').substring(0, 19) : '--'}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Render Identities Table
+      const identitiesTbody = document.getElementById('identitiesTableBody');
+      if (data.identities.length === 0) {
+        identitiesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">Chưa có liên kết Google nào</td></tr>';
+      } else {
+        identitiesTbody.innerHTML = data.identities.map(i => {
+          return `
+            <tr>
+              <td><strong>${i.id}</strong></td>
+              <td><span class="badge" style="background:#334155; color:#fff;">User #${i.user.id}</span></td>
+              <td><span class="badge badge-google">${i.provider}</span></td>
+              <td><code>${i.providerUserId}</code></td>
+              <td>${i.providerEmail || '--'}</td>
+              <td style="color: #94a3b8; font-size: 12.5px;">${i.linkedAt ? i.linkedAt.replace('T', ' ').substring(0, 19) : '--'}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('Không thể kết nối đến API Database Viewer: ' + err.message);
+    }
+  }
+
+  // Load immediately on page load
+  loadData();
+</script>
+
+</body>
+</html>
+
