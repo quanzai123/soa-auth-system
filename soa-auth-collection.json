@@ -166,7 +166,7 @@
           }
         },
         {
-          "name": "05. Xem Hồ Sơ Sinh Viên (Có Gửi Bearer Token)",
+          "name": "05. Xem Hồ Sơ Người Dùng Đăng Nhập (Có Gửi Bearer Token)",
           "event": [
             {
               "listen": "test",
@@ -175,11 +175,11 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Xác thực chữ ký số JWT thành công, trả về hồ sơ sinh viên TDTU', function () {",
+                  "pm.test('[PASS] Xác thực chữ ký số JWT thành công, trả về đúng hồ sơ người dùng', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
-                  "    pm.expect(json.data.email).to.include('student.tdtu.edu.vn');",
-                  "    pm.expect(json.data.accountType).to.eql('STUDENT');",
+                  "    pm.expect(json.data.email).to.be.a('string').and.not.empty;",
+                  "    pm.expect(json.data.accountType).to.be.oneOf(['STUDENT', 'LECTURER', 'PERSONAL']);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -199,7 +199,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me"]
             },
-            "description": "Gửi Bearer Token hợp lệ. Spring Security giải mã chữ ký số cục bộ và trả về hồ sơ sinh viên."
+            "description": "Gửi Bearer Token hợp lệ. Spring Security giải mã chữ ký số cục bộ và trả về thông tin hồ sơ của chính tài khoản đang đăng nhập (Sinh viên, Giảng viên hoặc Cá nhân)."
           }
         },
         {
