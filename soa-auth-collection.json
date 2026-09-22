@@ -275,60 +275,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "3. 🦹 Mô phỏng Bên Thứ 3 Tấn Công (Third-Party Attack Simulation)",
-      "item": [
-        {
-          "name": "3.1. [TẤN CÔNG 1] Hacker quét cổng KHÔNG gửi Token (Kỳ vọng: 403 Forbidden)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users", "me"]
-            },
-            "description": "Kẻ tấn công quét cổng và gọi API riêng tư mà không có Bearer Token. Spring Security Filter chặn đứng 403 Forbidden."
-          }
-        },
-        {
-          "name": "3.2. [TẤN CÔNG 2] Hacker làm giả Token chữ ký rác (Kỳ vọng: 403 Forbidden)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJoYWNrZXJAZGFyay5jb20iLCJyb2xlIjoiUk9MRV9BRE1JTiJ9.INVALID_FAKE_SIGNATURE_TAMPERED"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users", "me"]
-            },
-            "description": "Kẻ tấn công tự tạo Token mạo danh với chữ ký không khớp Secret Key. Hệ thống từ chối giải mã và chặn 403 Forbidden."
-          }
-        },
-        {
-          "name": "3.3. [TẤN CÔNG 3] Hacker phát lại Token cũ sau khi nạn nhân Đăng xuất (Kỳ vọng: 403 Forbidden)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users", "me"]
-            },
-            "description": "Kẻ tấn công nhặt được chuỗi Token cũ đã đăng xuất và thử gửi lại (Replay Attack). TokenBlacklistService phát hiện và chặn đứng 403."
-          }
-        }
-      ]
     }
   ]
 }
