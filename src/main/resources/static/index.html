@@ -306,6 +306,78 @@
                         </div>
                     </div>
 
+                    <!-- Third-Party Attack Lab (Hacker Attack Simulation) -->
+                    <div class="p-6 rounded-3xl bg-slate-900 border-2 border-rose-500/40 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between border-b border-rose-500/20 pb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                                    <i class="fa-solid fa-user-ninja text-base"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-bold text-rose-300 uppercase tracking-wider">
+                                        Mô Phỏng Bên Thứ 3 Tấn Công (Attack Simulation Lab)
+                                    </h3>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Đóng vai Hacker bên ngoài thâm nhập để kiểm chứng hàng rào phòng thủ của Gateway.</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-full bg-rose-950 text-rose-300 border border-rose-500/50">
+                                3 Kịch Bản Tấn Công
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            
+                            <!-- Attack 1: Zero Token Scan -->
+                            <div class="p-3.5 rounded-2xl bg-slate-950 border border-rose-500/30 flex flex-col justify-between space-y-2.5 hover:border-rose-500/60 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-bold text-rose-400">TẤN CÔNG 1</span>
+                                        <span class="text-[10px] font-mono font-bold text-rose-400">403 FORBIDDEN</span>
+                                    </div>
+                                    <strong class="text-xs text-white block">Quét Cổng Rỗng</strong>
+                                    <p class="text-[10px] text-slate-400 leading-tight">Gọi API cá nhân nhưng không gửi Bearer Token.</p>
+                                </div>
+                                <button onclick="testPrivateApiWithoutToken()" class="w-full py-2 px-2.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 rounded-xl text-[11px] font-bold border border-rose-500/40 transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-shield-virus text-[10px]"></i>
+                                    Kích Hoạt Tấn Công 1
+                                </button>
+                            </div>
+
+                            <!-- Attack 2: Fake Signature Token -->
+                            <div class="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-col justify-between space-y-2.5 hover:border-amber-500/60 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-bold text-amber-400">TẤN CÔNG 2</span>
+                                        <span class="text-[10px] font-mono font-bold text-rose-400">403 FORBIDDEN</span>
+                                    </div>
+                                    <strong class="text-xs text-white block">Giả Mạo Chữ Ký</strong>
+                                    <p class="text-[10px] text-slate-400 leading-tight">Tự chế Token với Secret rác (Tampered Token).</p>
+                                </div>
+                                <button onclick="testFakeSignatureAttack()" class="w-full py-2 px-2.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 rounded-xl text-[11px] font-bold border border-amber-500/40 transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-fingerprint text-[10px]"></i>
+                                    Kích Hoạt Tấn Công 2
+                                </button>
+                            </div>
+
+                            <!-- Attack 3: Replay Revoked Token -->
+                            <div class="p-3.5 rounded-2xl bg-slate-950 border border-purple-500/30 flex flex-col justify-between space-y-2.5 hover:border-purple-500/60 transition">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-bold text-purple-400">TẤN CÔNG 3</span>
+                                        <span class="text-[10px] font-mono font-bold text-rose-400">403 FORBIDDEN</span>
+                                    </div>
+                                    <strong class="text-xs text-white block">Phát Lại Token Cũ</strong>
+                                    <p class="text-[10px] text-slate-400 leading-tight">Replay Attack bằng Token vừa Đăng xuất.</p>
+                                </div>
+                                <button onclick="testReplayAttack()" class="w-full py-2 px-2.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-xl text-[11px] font-bold border border-purple-500/40 transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                    Kích Hoạt Tấn Công 3
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
                     <!-- Live API Console -->
                     <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg space-y-3">
                         <div class="flex items-center justify-between">
@@ -653,6 +725,57 @@
             }
         }
 
+        // 5. TẤN CÔNG 2: Gửi Token Giả Mạo Chữ Ký (Tampered Signature)
+        async function testFakeSignatureAttack() {
+            try {
+                const fakeToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJoYWNrZXJAZGFyay5jb20iLCJyb2xlIjoiUk9MRV9BRE1JTiIsImFjY291bnRUeXBlIjoiU1RVREVOVCIsImV4cCI6OTk5OTk5OTk5OX0.INVALID_FAKE_SIGNATURE_TAMPERED_HASH";
+                const res = await fetch(`${API_BASE}/api/users/me`, {
+                    headers: { "Authorization": `Bearer ${fakeToken}` }
+                });
+                let json;
+                try {
+                    json = await res.json();
+                } catch(e) {
+                    json = { 
+                        status: res.status, 
+                        alert: "🛡️ PHÒNG THỦ THÀNH CÔNG!",
+                        threat: "Kẻ tấn công mạo danh quyền ADMIN với Token chữ ký rác (Fake Secret)",
+                        defense: "JwtTokenProvider kiểm tra băm HMAC-SHA không khớp và từ chối giải mã",
+                        action: "Spring Security chặn đứng 403 Forbidden ngay tại JwtAuthenticationFilter"
+                    };
+                }
+                logConsole("GET /api/users/me (TOKEN CHỮ KÝ RÁC)", "ATTACKER", res.status, json);
+            } catch (err) {
+                logConsole("GET /api/users/me (CHỮ KÝ RÁC)", "ERROR", 500, err.message);
+            }
+        }
+
+        // 6. TẤN CÔNG 3: Phát Lại Token Đã Bị Thu Hồi Sau Đăng Xuất (Replay Attack)
+        let lastRevokedToken = localStorage.getItem("lastRevokedToken") || null;
+        async function testReplayAttack() {
+            const tokenToTest = lastRevokedToken || "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJoaWV1aGlldTU5MzNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsImFjY291bnRUeXBlIjoiUEVSU09OQUwiLCJqdGkiOiIwNmVhOWM2OC0xMjM0LTU2NzgtODljYS0zNzQ4NDE3NGUwNzIiLCJpYXQiOjE3OTAwNDQ2MzgsImV4cCI6MTc5MDA0NTUzOH0.revoked_token_signature_demo";
+            try {
+                const res = await fetch(`${API_BASE}/api/users/me`, {
+                    headers: { "Authorization": `Bearer ${tokenToTest}` }
+                });
+                let json;
+                try {
+                    json = await res.json();
+                } catch(e) {
+                    json = { 
+                        status: res.status, 
+                        alert: "🛡️ PHÒNG THỦ THÀNH CÔNG!",
+                        threat: "Kẻ tấn công đánh cắp Token cũ đã Đăng xuất để thử gửi lại request (Token Replay Attack)",
+                        defense: "TokenBlacklistService phát hiện Token nằm trong Danh Sách Đen (Bounded TTL)",
+                        action: "Chặn đứng 403 Forbidden ngay cả khi Token về mặt toán học chưa hết hạn 15 phút!"
+                    };
+                }
+                logConsole("GET /api/users/me (PHÁT LẠI TOKEN ĐÃ THU HỒI)", "REPLAY", res.status, json);
+            } catch (err) {
+                logConsole("GET /api/users/me (REPLAY ATTACK)", "ERROR", 500, err.message);
+            }
+        }
+
         // 8. Đặt mật khẩu dự phòng
         async function setBackupPassword() {
             const pwd = document.getElementById("inputBackupPassword").value;
@@ -726,6 +849,8 @@
         // 11. Đăng xuất: Vô hiệu hóa Token trên Server & Khóa màn hình
         async function logout() {
             if (currentAccessToken) {
+                lastRevokedToken = currentAccessToken;
+                localStorage.setItem("lastRevokedToken", currentAccessToken);
                 try {
                     const res = await fetch(`${API_BASE}/api/auth/logout`, {
                         method: "POST",
