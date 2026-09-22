@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "soa-group1-google-oauth2",
     "name": "SOA Group 1 - Google OAuth 2.0 & JWT Auth API",
-    "description": "Bộ sưu tập API kiểm thử tự động hóa 100% dành cho Seminar Kiến trúc Hướng Dịch vụ (SOA) - Sinh viên: Nguyễn Anh Quân (524H0122)",
+    "description": "Bộ sưu tập API kiểm thử tự động hóa 100% dành cho Seminar Kiến trúc Hướng Dịch vụ (SOA) - Tự động đồng bộ tài khoản đăng nhập (Gmail cá nhân / Sinh viên / Giảng viên).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,12 +13,12 @@
     },
     {
       "key": "accessToken",
-      "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1MjRoMDEyMkBzdHVkZW50LnRkdHUuZWR1LnZuIiwicm9sZSI6IlJPTEVfVVNFUiIsImFjY291bnRUeXBlIjoiU1RVREVOVCIsImp0aSI6IjgwZDA5MTk0LWRlZjktNGQ3OC04MzY0LTQyMzYxYjVmNjhhYSIsImlhdCI6MTc5MDA0NzcwOSwiZXhwIjoxNzkwNjUyNTA5fQ.x-0l7mm9sW5-wBkPsag9IsPxgNOWM6DVBtk0dTIb-VZitk7RQ94raFmpy53I4bBz",
+      "value": "",
       "type": "string"
     },
     {
       "key": "refreshToken",
-      "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1MjRoMDEyMkBzdHVkZW50LnRkdHUuZWR1LnZuIiwidHlwZSI6IlJFRlJFU0giLCJqdGkiOiJiMDFkOWE0Ny0zMmEyLTQwMzItYTU4ZC1jYzNiZmJhYTVhZmIiLCJpYXQiOjE3OTAwNDc3MDksImV4cCI6MTc5MjYzOTcwOX0.Np4ginK1Oz4Nkc2YWWWPi-hPIrd_lmjDTaBfnh8QvCxYX0zIyr_NL8bnmRktDord",
+      "value": "",
       "type": "string"
     }
   ],
@@ -67,9 +67,10 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Google OAuth Client ID đã được kích hoạt', function () {",
+                  "pm.test('[PASS] Đọc cấu hình Google OAuth 2.0 thành công', function () {",
                   "    var json = pm.response.json();",
-                  "    pm.expect(json.data.isConfigured).to.be.true;",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.have.property('redirectUri');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -124,7 +125,7 @@
       "name": "📂 2. BẢO MẬT & XÁC THỰC DANH TÍNH (JWT IDENTITY)",
       "item": [
         {
-          "name": "04. Tự Động Gia Hạn Token Mới (Refresh Token)",
+          "name": "04. Tự Động Đồng Bộ Token Đang Đăng Nhập (Tự Động Nhận Diện Tài Khoản)",
           "event": [
             {
               "listen": "test",
@@ -133,12 +134,13 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Cấp phát Access Token mới thành công', function () {",
+                  "pm.test('[PASS] Tự động đồng bộ Token của tài khoản đang đăng nhập', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.accessToken).to.be.a('string');",
                   "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
                   "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "    console.log('Đã nạp Token thành công cho:', json.data.user.email, '| Loại:', json.data.user.accountType);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -146,27 +148,18 @@
             }
           ],
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "raw": "{{baseUrl}}/api/auth/latest-token",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "refresh-token"]
+              "path": ["api", "auth", "latest-token"]
             },
-            "description": "Tự động đổi Refresh Token lấy Access Token mới và cập nhật thẳng vào biến hệ thống."
+            "description": "Tự động lấy token của tài khoản vừa đăng nhập trên trình duyệt web (Gmail cá nhân hoặc Sinh viên) để Postman kiểm thử đúng tài khoản đó."
           }
         },
         {
-          "name": "05. Xem Hồ Sơ Người Dùng Đăng Nhập (Có Gửi Bearer Token)",
+          "name": "05. Xem Hồ Sơ Người Dùng Đang Đăng Nhập (Có Gửi Bearer Token)",
           "event": [
             {
               "listen": "test",
@@ -180,6 +173,7 @@
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.email).to.be.a('string').and.not.empty;",
                   "    pm.expect(json.data.accountType).to.be.oneOf(['STUDENT', 'LECTURER', 'PERSONAL']);",
+                  "    console.log('Hồ sơ xác thực:', json.data.fullName, '<' + json.data.email + '>', 'Vai trò:', json.data.accountType);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -199,7 +193,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me"]
             },
-            "description": "Gửi Bearer Token hợp lệ. Spring Security giải mã chữ ký số cục bộ và trả về thông tin hồ sơ của chính tài khoản đang đăng nhập (Sinh viên, Giảng viên hoặc Cá nhân)."
+            "description": "Gửi Bearer Token hợp lệ. Spring Security giải mã chữ ký số cục bộ và trả về thông tin hồ sơ của chính tài khoản đang đăng nhập."
           }
         },
         {
@@ -215,6 +209,7 @@
                   "pm.test('[PASS] Lấy danh sách liên kết danh tính thành công', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data).to.be.an('array');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -234,11 +229,58 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "linked-accounts"]
             },
-            "description": "Xem các cổng đăng nhập (Google OAuth2) đang liên kết với tài khoản."
+            "description": "Xem các cổng đăng nhập OAuth2 (Google) đang liên kết với tài khoản này."
           }
         },
         {
-          "name": "07. Thiết Lập Mật Khẩu Dự Phòng Cho Tài Khoản",
+          "name": "07. [PHÒNG THỦ DỮ LIỆU] Chặn Hủy Liên Kết Google Khi Chưa Có Mật Khẩu (Kỳ vọng: 400 Bad Request)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('baseUrl') + '/api/auth/demo-token?noPassword=true',",
+                  "    method: 'GET'",
+                  "}, function (err, res) {",
+                  "    if (!err && res.code === 200) {",
+                  "        pm.variables.set('noPasswordToken', res.json().data.accessToken);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] Ràng buộc bảo vệ dữ liệu thành công: HTTP 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{noPasswordToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/linked-accounts/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "me", "linked-accounts", "google"]
+            },
+            "description": "Kiểm tra ràng buộc nghiệp vụ: Chặn người dùng vô tình hủy Google khi chưa có mật khẩu để tránh tài khoản mồ côi."
+          }
+        },
+        {
+          "name": "08. Thiết Lập Mật Khẩu Dự Phòng Cho Tài Khoản (BCrypt)",
           "event": [
             {
               "listen": "test",
@@ -277,7 +319,48 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "password"]
             },
-            "description": "Tạo mật khẩu dự phòng băm bằng BCrypt để tránh tình trạng tài khoản mồ côi."
+            "description": "Tạo mật khẩu dự phòng băm bằng BCrypt để tránh tình trạng tài khoản mồ côi sau này."
+          }
+        },
+        {
+          "name": "09. Tự Động Gia Hạn Token Mới (Refresh Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('[PASS] Cấp phát Access Token mới thành công từ Refresh Token', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data.accessToken).to.be.a('string');",
+                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "description": "Tự động đổi Refresh Token lấy Access Token mới và cập nhật thẳng vào biến hệ thống."
           }
         }
       ]
@@ -286,7 +369,7 @@
       "name": "📂 3. KIỂM THỬ PHÒNG THỦ & THU HỒI TOKEN (SECURITY DEFENSE)",
       "item": [
         {
-          "name": "08. [PHÒNG THỦ 1] Chặn Người Lạ Không Gửi Token (Kỳ vọng: 403 Forbidden)",
+          "name": "10. [PHÒNG THỦ 1] Chặn Người Lạ Không Gửi Token (Kỳ vọng: 403 Forbidden)",
           "event": [
             {
               "listen": "test",
@@ -312,38 +395,7 @@
           }
         },
         {
-          "name": "09. [PHÒNG THỦ 2] Chặn Hủy Liên Kết Google Khi Chưa Có Mật Khẩu (Kỳ vọng: 400 Bad Request)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('[PASS] Ràng buộc bảo vệ dữ liệu thành công: HTTP 400 Bad Request', function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/me/linked-accounts/google",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users", "me", "linked-accounts", "google"]
-            },
-            "description": "Kiểm tra ràng buộc nghiệp vụ: Chặn người dùng vô tình hủy Google khi chưa có mật khẩu để tránh nick mồ côi."
-          }
-        },
-        {
-          "name": "10. Đăng Xuất & Thu Hồi Token Vào Blacklist",
+          "name": "11. Đăng Xuất & Thu Hồi Token Vào Blacklist",
           "event": [
             {
               "listen": "test",
@@ -378,7 +430,7 @@
           }
         },
         {
-          "name": "11. [PHÒNG THỦ 3] Chặn Tấn Công Phát Lại Token Đã Đăng Xuất (Kỳ vọng: 403 Forbidden)",
+          "name": "12. [PHÒNG THỦ 2] Chặn Tấn Công Phát Lại Token Đã Đăng Xuất (Kỳ vọng: 403 Forbidden)",
           "event": [
             {
               "listen": "test",

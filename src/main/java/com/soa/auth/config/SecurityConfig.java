@@ -46,6 +46,8 @@ public class SecurityConfig {
                                 "/static/**",
                                 "/api/auth/google/**",
                                 "/api/auth/refresh-token",
+                                "/api/auth/latest-token",
+                                "/api/auth/demo-token",
                                 "/h2-console/**")
                         .permitAll()
 

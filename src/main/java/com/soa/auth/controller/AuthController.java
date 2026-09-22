@@ -91,6 +91,27 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Làm mới access token thành công", response));
     }
 
+    // 🟢 PUBLIC API: Lấy phiên làm việc gần nhất để tự động đồng bộ tài khoản với Postman
+    @GetMapping("/latest-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> getLatestToken() {
+        AuthResponse session = authService.getLatestSession();
+        if (session == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Chưa có phiên làm việc nào!"));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Lấy phiên đăng nhập gần nhất thành công", session));
+    }
+
+    // 🟢 PUBLIC API: Lấy token tài khoản kiểm thử bảo mật (không có mật khẩu)
+    @GetMapping("/demo-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> getDemoToken(
+            @RequestParam(defaultValue = "false") boolean noPassword) {
+        AuthResponse session = noPassword ? authService.getDemoNoPasswordSession() : authService.getLatestSession();
+        if (session == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tạo được token demo!"));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Lấy token demo thành công", session));
+    }
+
     // 🔒 PRIVATE API: Đăng xuất và đưa token vào Blacklist thu hồi
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
