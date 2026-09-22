@@ -319,7 +319,7 @@
               "script": {
                 "exec": [
                   "pm.test('[PASS] Ràng buộc bảo vệ dữ liệu thành công: HTTP 400 Bad Request', function () {",
-                  "    pm.expect([400, 200]).to.include(pm.response.code);",
+                  "    pm.response.to.have.status(400);",
                   "});"
                 ],
                 "type": "text/javascript"
