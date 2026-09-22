@@ -4,7 +4,7 @@
 > **Student:** Nguyễn Anh Quân (ID: `524H0122`)  
 > **Institution:** Faculty of Information Technology — Tôn Đức Thắng University (TDTU)
 
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.0-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg?logo=openjdk)](https://www.oracle.com/java/)
 [![Microsoft SQL Server](https://img.shields.io/badge/SQL%20Server-2022%20Docker-blue.svg?logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
 [![OAuth 2.0](<https://img.shields.io/badge/OAuth-2.0%20(RFC%206749)-red.svg>)](https://datatracker.ietf.org/doc/html/rfc6749)
@@ -116,7 +116,7 @@ app:
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/soa-auth-system.git
+git clone https://github.com/quanzai123/soa-auth-system.git
 cd soa-auth-system
 
 # Run with Maven Wrapper
