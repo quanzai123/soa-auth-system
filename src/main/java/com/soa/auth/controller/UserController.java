@@ -15,12 +15,18 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final com.soa.auth.service.AuthService authService;
 
     // 🔒 PRIVATE API: Xem thông tin tài khoản hiện tại
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserProfileDto>> getCurrentUserProfile(Authentication authentication) {
+    public ResponseEntity<ApiResponse<UserProfileDto>> getCurrentUserProfile(
+            Authentication authentication,
+            @RequestHeader(value = "Authorization", required = false) String bearerHeader) {
         String email = authentication.getName();
         UserProfileDto profile = userService.getProfile(email);
+        if (bearerHeader != null && bearerHeader.startsWith("Bearer ")) {
+            authService.syncActiveSession(email, bearerHeader.substring(7));
+        }
         return ResponseEntity.ok(ApiResponse.ok("Lấy thông tin tài khoản thành công", profile));
     }
 

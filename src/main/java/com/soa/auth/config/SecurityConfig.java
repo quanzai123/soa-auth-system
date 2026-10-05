@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/api/auth/refresh-token",
                                 "/api/auth/latest-token",
                                 "/api/auth/demo-token",
+                                "/api/auth/quick-login",
                                 "/h2-console/**")
                         .permitAll()
 

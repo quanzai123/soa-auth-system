@@ -154,6 +154,41 @@ public class AuthService {
         return response;
     }
 
+    public void syncActiveSession(String email, String token) {
+        if (email != null && token != null && jwtTokenProvider.validateToken(token) && !tokenBlacklistService.isBlacklisted(token)) {
+            UserProfileDto profile = userService.getProfile(email);
+            AuthResponse session = AuthResponse.builder()
+                    .accessToken(token)
+                    .refreshToken(jwtTokenProvider.generateRefreshToken(email))
+                    .tokenType("Bearer")
+                    .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
+                    .user(profile)
+                    .build();
+            latestSession.set(session);
+            log.info("Đã đồng bộ phiên làm việc của tài khoản trên Web: {}", email);
+        }
+    }
+
+    public AuthResponse quickLogin(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return null;
+        }
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole(), user.getAccountType());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
+        UserProfileDto profile = userService.getProfile(user.getEmail());
+        AuthResponse response = AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
+                .user(profile)
+                .build();
+        latestSession.set(response);
+        log.info("Người dùng đăng nhập thành công trên Web: {} (Loại: {})", email, user.getAccountType());
+        return response;
+    }
+
     public AuthResponse getLatestSession() {
         AuthResponse current = latestSession.get();
         if (current != null && !tokenBlacklistService.isBlacklisted(current.getAccessToken())) {
@@ -167,22 +202,27 @@ public class AuthService {
                     .user(profile)
                     .build();
         }
-        // Fallback: Tìm tài khoản gần nhất trong DB để cấp token sẵn sàng
-        java.util.List<User> users = userRepository.findAll();
-        if (!users.isEmpty()) {
-            User latestUser = users.get(users.size() - 1);
-            String accessToken = jwtTokenProvider.generateAccessToken(latestUser.getEmail(), latestUser.getRole(), latestUser.getAccountType());
-            String refreshToken = jwtTokenProvider.generateRefreshToken(latestUser.getEmail());
-            UserProfileDto profile = userService.getProfile(latestUser.getEmail());
-            AuthResponse fallback = AuthResponse.builder()
+        // Tuyệt đối không tự ý fallback sang tài khoản khác! Nếu Web chưa đăng nhập thì trả về null
+        return null;
+    }
+
+    public AuthResponse seedDefaultTestSession() {
+        // Chỉ dùng khi chạy kiểm thử tự động Newman CLI từ dòng lệnh
+        User student = userRepository.findByEmail("524h0122@student.tdtu.edu.vn")
+                .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
+        if (student != null) {
+            String accessToken = jwtTokenProvider.generateAccessToken(student.getEmail(), student.getRole(), student.getAccountType());
+            String refreshToken = jwtTokenProvider.generateRefreshToken(student.getEmail());
+            UserProfileDto profile = userService.getProfile(student.getEmail());
+            AuthResponse resp = AuthResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .tokenType("Bearer")
                     .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
                     .user(profile)
                     .build();
-            latestSession.set(fallback);
-            return fallback;
+            latestSession.set(resp);
+            return resp;
         }
         return null;
     }
@@ -194,6 +234,10 @@ public class AuthService {
                         .findFirst()
                         .orElse(null));
         if (user != null) {
+            // Đảm bảo tài khoản demo này không có mật khẩu để kiểm thử ràng buộc bảo vệ
+            user.setPasswordHash(null);
+            userRepository.save(user);
+
             // Đảm bảo user này luôn có Google identity mẫu
             if (userIdentityRepository.findByUserId(user.getId()).isEmpty()) {
                 userIdentityRepository.save(UserIdentity.builder()

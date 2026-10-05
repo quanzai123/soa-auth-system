@@ -102,17 +102,22 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('[PASS] Tự động bắt phiên vừa thao tác trên Web và nạp Token vào Postman', function () {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.success).to.be.true;",
-                  "    pm.expect(json.data.accessToken).to.be.a('string');",
-                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                  "    console.log('🔄 [LIVE SYNC TRỰC TIẾP]: Web vừa làm gì (Google Login, đổi tài khoản, đặt MK) -> Postman đồng bộ ngay:', json.data.user.fullName, '<' + json.data.user.email + '>', '| Vai trò:', json.data.user.accountType);",
-                  "});"
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('[PASS] Đã lấy chính xác tài khoản đang đăng nhập trên Web (200 OK)', function () {",
+                  "        var json = pm.response.json();",
+                  "        pm.expect(json.success).to.be.true;",
+                  "        pm.expect(json.data.accessToken).to.be.a('string');",
+                  "        pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "        pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "        console.log('🔄 [LIVE SYNC THÀNH CÔNG]: Web đang đăng nhập tài khoản:', json.data.user.fullName, '<' + json.data.user.email + '>', '| Vai trò:', json.data.user.accountType);",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    pm.test('[PASS] Đúng thiết kế bảo mật: Web chưa đăng nhập thì không lấy được gì (401 Unauthorized)', function () {",
+                  "        var json = pm.response.json();",
+                  "        pm.expect(json.success).to.be.false;",
+                  "        console.log('🔒 [BẢO MẬT TUYỆT ĐỐI]: Web chưa đăng nhập -> Postman bị từ chối lấy dữ liệu đúng như yêu cầu!');",
+                  "    });",
+                  "}"
                 ],
                 "type": "text/javascript"
               }

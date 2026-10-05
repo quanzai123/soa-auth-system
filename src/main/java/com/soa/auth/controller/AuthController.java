@@ -91,14 +91,33 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Làm mới access token thành công", response));
     }
 
-    // 🟢 PUBLIC API: Lấy phiên làm việc gần nhất để tự động đồng bộ tài khoản với Postman
-    @GetMapping("/latest-token")
-    public ResponseEntity<ApiResponse<AuthResponse>> getLatestToken() {
-        AuthResponse session = authService.getLatestSession();
-        if (session == null) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Chưa có phiên làm việc nào!"));
+    // 🟢 PUBLIC API: Đăng nhập nhanh tài khoản thử nghiệm trên Web
+    @PostMapping("/quick-login")
+    public ResponseEntity<ApiResponse<AuthResponse>> quickLogin(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Thiếu email đăng nhập"));
         }
-        return ResponseEntity.ok(ApiResponse.ok("Lấy phiên đăng nhập gần nhất thành công", session));
+        AuthResponse response = authService.quickLogin(email.trim().toLowerCase());
+        if (response == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy tài khoản: " + email));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Đăng nhập thành công", response));
+    }
+
+    // 🟢 PUBLIC API: Lấy phiên làm việc gần nhất từ Web để đồng bộ vào Postman
+    @GetMapping("/latest-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> getLatestToken(
+            @RequestParam(required = false, defaultValue = "false") boolean autoSeed) {
+        AuthResponse session = authService.getLatestSession();
+        if (session == null && autoSeed) {
+            session = authService.seedDefaultTestSession();
+        }
+        if (session == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Chưa có tài khoản nào đăng nhập trên Web! Vui lòng truy cập http://localhost:8080 và đăng nhập Google trước."));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Đã đồng bộ chính xác tài khoản đang đăng nhập trên Web", session));
     }
 
     // 🟢 PUBLIC API: Lấy token tài khoản kiểm thử bảo mật (không có mật khẩu)

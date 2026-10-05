@@ -94,6 +94,23 @@
                         <span>Đăng nhập an toàn với Google</span>
                     </button>
 
+                    <div class="relative flex py-1 items-center">
+                        <div class="flex-grow border-t border-slate-800"></div>
+                        <span class="flex-shrink mx-3 text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Hoặc thử nghiệm nhanh tài khoản</span>
+                        <div class="flex-grow border-t border-slate-800"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="quickLoginUser('524h0122@student.tdtu.edu.vn')" class="py-2.5 px-3 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span>Sinh viên TDTU</span>
+                        </button>
+                        <button onclick="quickLoginUser('quan03313@gmail.com')" class="py-2.5 px-3 rounded-xl bg-indigo-950/80 hover:bg-indigo-900/90 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Gmail Cá nhân</span>
+                        </button>
+                    </div>
+
                     <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 text-left space-y-2.5 text-xs text-slate-300">
                         <div class="flex items-start gap-2.5">
                             <i class="fa-solid fa-graduation-cap text-emerald-400 mt-0.5 text-sm"></i>
@@ -468,6 +485,27 @@
                 }
             } catch (err) {
                 alert("Lỗi kết nối tới máy chủ: " + err.message);
+            }
+        }
+
+        // 2. Đăng nhập nhanh tài khoản thử nghiệm (Demo / Test)
+        async function quickLoginUser(email) {
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/quick-login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email })
+                });
+                const json = await res.json();
+                if (json.success && json.data) {
+                    saveTokens(json.data.accessToken, json.data.refreshToken);
+                    renderProfile(json.data.user);
+                    logConsole("POST /api/auth/quick-login", "PUBLIC", res.status, json);
+                } else {
+                    alert("Đăng nhập thất bại: " + json.message);
+                }
+            } catch (err) {
+                alert("Lỗi kết nối: " + err.message);
             }
         }
 
