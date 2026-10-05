@@ -37,3 +37,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Seminar & Presentation materials (Do not commit to code repo)
+*slide*
+*thuyet_trinh*
+*kich_ban*
+*seminar*
+*.pdf
+*.zip
+

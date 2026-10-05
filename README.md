@@ -57,16 +57,20 @@ This project delivers an enterprise-grade **Centralized Identity Gateway (`soa-a
 
 ## 📋 Standardized RESTful API Matrix
 
-| Method | Endpoint                      | Access Level | Description                                                            |
-| :----: | :---------------------------- | :----------: | :--------------------------------------------------------------------- |
-| `GET`  | `/api/auth/google/url`        |    Public    | Generates Google OAuth consent URL with cryptographic anti-CSRF state  |
-| `POST` | `/api/auth/google/callback`   |    Public    | Exchanges authorization code for Stateless JWT Access Token            |
-| `POST` | `/api/auth/logout`            |  Bearer JWT  | Enlists active token into Bounded TTL Blacklist for instant revocation |
-| `POST` | `/api/auth/refresh-token`     |    Public    | Issues a new Access Token using a valid Refresh Token                  |
-| `GET`  | `/api/users/me`               |  Bearer JWT  | Retrieves authenticated profile, assigned role, and linked identities  |
-| `POST` | `/api/users/me/password`      |  Bearer JWT  | Configures local fallback password (BCrypt salted hash)                |
-| `POST` | `/api/users/me/unlink-google` |  Bearer JWT  | Unlinks Google identity (guarded by orphan account validation)         |
-| `GET`  | `/api/public/database-viewer` |    Public    | Real-time masked snapshot of SQL Server 2022 database records          |
+| Method   | Endpoint                               | Access Level | Description                                                            |
+| :------: | :------------------------------------- | :----------: | :--------------------------------------------------------------------- |
+|  `GET`   | `/api/auth/google/url`                 |    Public    | Generates Google OAuth consent URL with cryptographic anti-CSRF state  |
+|  `GET`   | `/api/auth/google/config`              |    Public    | Returns public SSO configurations (Redirect URI, Client ID)            |
+|  `POST`  | `/api/auth/google/callback`            |    Public    | Exchanges authorization code for Stateless JWT Access Token            |
+|  `POST`  | `/api/auth/quick-login`                |    Public    | Quick login test endpoint for verified identity verification           |
+|  `GET`   | `/api/auth/latest-token`               |    Public    | Live-sync active session for automated API verification suite          |
+|  `POST`  | `/api/auth/logout`                     |  Bearer JWT  | Enlists active token into Bounded TTL Blacklist for instant revocation |
+|  `POST`  | `/api/auth/refresh-token`              |    Public    | Issues a new Access Token using a valid Refresh Token                  |
+|  `GET`   | `/api/users/me`                        |  Bearer JWT  | Retrieves authenticated profile, assigned role, and linked identities  |
+|  `PUT`   | `/api/users/me`                        |  Bearer JWT  | Updates user profile information (Full Name, Avatar URL)               |
+|  `POST`  | `/api/users/me/password`               |  Bearer JWT  | Configures local fallback password (BCrypt salted hash)                |
+| `DELETE` | `/api/users/me/linked-accounts/google` |  Bearer JWT  | Unlinks Google identity (guarded by orphan account validation)         |
+|  `GET`   | `/api/users/database-viewer`           |  Bearer JWT  | Real-time masked snapshot of SQL Server 2022 database records          |
 
 All endpoints return standardized JSON wrapped in `ApiResponse<T>`:
 
@@ -143,7 +147,7 @@ chmod +x test-external-actors.sh
 npx --yes newman run soa-auth-collection.json
 ```
 
-**Test Results:** 12/12 API requests passed with 0 failures (100% test coverage including Blacklist revocation and RBAC boundaries).
+**Test Results:** 14/14 API requests and 21/21 assertions passed with 0 failures (100% test coverage including Blacklist revocation, live session sync, and RBAC boundaries).
 
 ---
 
