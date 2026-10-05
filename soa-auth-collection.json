@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "soa-group1-google-oauth2",
     "name": "SOA Group 1 - Google OAuth 2.0 & JWT Auth API",
-    "description": "Bộ sưu tập API kiểm thử tự động hóa 100% dành cho Seminar Kiến trúc Hướng Dịch vụ (SOA) - Tự động đồng bộ tài khoản đăng nhập (Gmail cá nhân / Sinh viên / Giảng viên).",
+    "description": "Bộ sưu tập API kiểm thử tự động hóa 100% dành cho Seminar Kiến trúc Hướng Dịch vụ (SOA) - Phân định rõ ràng Public API vs Private API, Cơ sở dữ liệu Private, Tự động đồng bộ trực tiếp với Web, Thu hồi quyền và Dừng truy cập ngay lập tức.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -24,7 +24,7 @@
   ],
   "item": [
     {
-      "name": "📂 1. CÁC API CÔNG KHAI (PUBLIC APIS - KHÔNG CẦN TOKEN)",
+      "name": "📂 1. CÁC API CÔNG KHAI (PUBLIC APIS - KHÔNG CẦN ĐĂNG NHẬP / TOKEN)",
       "item": [
         {
           "name": "01. Lấy URL Đăng Nhập Google SSO (RFC 6749)",
@@ -36,10 +36,11 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Sinh thành công URL Google OAuth 2.0', function () {",
+                  "pm.test('[PASS] Public API: Sinh thành công URL Google OAuth 2.0', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.url).to.include('accounts.google.com');",
+                  "    console.log('🌐 [PUBLIC API]: Cho phép mọi client lấy URL chuyển hướng Google SSO mà không cần bất kỳ định danh nào.');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -54,7 +55,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "google", "url"]
             },
-            "description": "Gọi Gateway sinh đường dẫn ủy quyền Google OAuth 2.0 kèm Client ID và Scope chuẩn."
+            "description": "Public API: Bất kỳ ai cũng có thể gọi để lấy URL ủy quyền Google SSO."
           }
         },
         {
@@ -67,10 +68,11 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Đọc cấu hình Google OAuth 2.0 thành công', function () {",
+                  "pm.test('[PASS] Public API: Đọc cấu hình OAuth2 công khai thành công', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data).to.have.property('redirectUri');",
+                  "    console.log('🌐 [PUBLIC API]: Trả về trạng thái cấu hình SSO (Redirect URI, Client ID) để UI khởi tạo nút bấm.');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -85,47 +87,16 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "google", "config"]
             },
-            "description": "Kiểm tra trạng thái Client ID và Client Secret phía máy chủ."
-          }
-        },
-        {
-          "name": "03. Xem Cơ Sở Dữ Liệu SQL Server Trực Tiếp",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('[PASS] Đọc thành công dữ liệu từ Microsoft SQL Server 2022', function () {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.data.database).to.eql('google_login_db');",
-                  "    pm.expect(json.data.totalUsers).to.be.above(0);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/public/database-viewer",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "public", "database-viewer"]
-            },
-            "description": "Đọc dữ liệu thực tế từ container Microsoft SQL Server 2022 Docker."
+            "description": "Public API: Kiểm tra trạng thái máy chủ SSO đã sẵn sàng hoạt động hay chưa."
           }
         }
       ]
     },
     {
-      "name": "📂 2. CÁC API RIÊNG TƯ (PRIVATE APIS - ĐIỀU KIỆN: CÓ BEARER TOKEN)",
+      "name": "📂 2. CÁC API RIÊNG TƯ (PRIVATE APIS - ĐIỀU KIỆN BẮT BUỘC: CÓ BEARER TOKEN HỢP LỆ)",
       "item": [
         {
-          "name": "04. Tự Động Đồng Bộ Token Đang Đăng Nhập (Tự Động Nhận Diện Tài Khoản)",
+          "name": "03. Tự Động Đồng Bộ Phiên Hoạt Động Trực Tiếp Từ Web",
           "event": [
             {
               "listen": "test",
@@ -134,13 +105,13 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Tự động đồng bộ Token của tài khoản đang đăng nhập', function () {",
+                  "pm.test('[PASS] Tự động bắt phiên vừa thao tác trên Web và nạp Token vào Postman', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.accessToken).to.be.a('string');",
                   "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
                   "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                  "    console.log('Đã nạp Token thành công cho:', json.data.user.email, '| Loại:', json.data.user.accountType);",
+                  "    console.log('🔄 [LIVE SYNC TRỰC TIẾP]: Web vừa làm gì (Google Login, đổi tài khoản, đặt MK) -> Postman đồng bộ ngay:', json.data.user.fullName, '<' + json.data.user.email + '>', '| Vai trò:', json.data.user.accountType);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -155,11 +126,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "latest-token"]
             },
-            "description": "Tự động lấy token của tài khoản vừa đăng nhập trên trình duyệt web (Gmail cá nhân hoặc Sinh viên) để Postman kiểm thử đúng tài khoản đó."
+            "description": "Cơ chế Live Sync: Tự động trích xuất Token và hồ sơ người dùng vừa đăng nhập/thao tác trên trình duyệt Web để các request Private phía sau kiểm thử chính xác tài khoản đó."
           }
         },
         {
-          "name": "05. Xem Hồ Sơ Người Dùng Đang Đăng Nhập (Có Gửi Bearer Token)",
+          "name": "04. Xem Hồ Sơ Người Dùng Đang Đăng Nhập (Có Bearer Token)",
           "event": [
             {
               "listen": "test",
@@ -168,12 +139,11 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Xác thực chữ ký số JWT thành công, trả về đúng hồ sơ người dùng', function () {",
+                  "pm.test('[PASS] Private API: Xác thực chữ ký JWT thành công, trả về đúng hồ sơ', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.email).to.be.a('string').and.not.empty;",
-                  "    pm.expect(json.data.accountType).to.be.oneOf(['STUDENT', 'LECTURER', 'PERSONAL']);",
-                  "    console.log('✅ [TRUY CẬP PRIVATE HỢP LỆ]: Token có chữ ký số hợp lệ -> Cấp quyền truy cập hồ sơ:', json.data.fullName, '<' + json.data.email + '>', '| Vai trò:', json.data.accountType);",
+                  "    console.log('✅ [PRIVATE API - 200 OK]: Đã xác thực thành công danh tính:', json.data.email, '| Có mật khẩu chưa:', json.data.hasPassword);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -193,11 +163,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me"]
             },
-            "description": "Gửi Bearer Token hợp lệ. Spring Security giải mã chữ ký số cục bộ và trả về thông tin hồ sơ của chính tài khoản đang đăng nhập."
+            "description": "Private API: Bắt buộc gửi Bearer Access Token. Spring Security giải mã chữ ký JWT và cấp quyền xem hồ sơ."
           }
         },
         {
-          "name": "06. Xem Danh Sách Nhà Cung Cấp Đang Liên Kết",
+          "name": "05. Xem Danh Sách Nhà Cung Cấp Đang Liên Kết",
           "event": [
             {
               "listen": "test",
@@ -206,7 +176,7 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Lấy danh sách liên kết danh tính thành công', function () {",
+                  "pm.test('[PASS] Private API: Lấy danh sách liên kết danh tính thành công', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data).to.be.an('array');",
@@ -229,11 +199,50 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "linked-accounts"]
             },
-            "description": "Xem các cổng đăng nhập OAuth2 (Google) đang liên kết với tài khoản này."
+            "description": "Private API: Xem danh sách các Provider OAuth2 (Google) đang liên kết với tài khoản."
           }
         },
         {
-          "name": "07. [PHÒNG THỦ DỮ LIỆU] Chặn Hủy Liên Kết Google Khi Chưa Có Mật Khẩu (Kỳ vọng: 400 Bad Request)",
+          "name": "06. Xem Cơ Sở Dữ Liệu SQL Server Trực Tiếp (Có Bearer Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('[PASS] Private API: Có Bearer Token hợp lệ -> Cấp quyền xem CSDL SQL Server', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "    pm.expect(json.data.database).to.eql('google_login_db');",
+                  "    pm.expect(json.data.totalUsers).to.be.above(0);",
+                  "    pm.expect(json.data.requestedBy).to.be.a('string').and.not.empty;",
+                  "    console.log('🔒 [CSDL PRIVATE - 200 OK]: Người dùng', json.data.requestedBy, 'đã xác thực thành công và được phép xem bản chụp CSDL SQL Server.');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/database-viewer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "database-viewer"]
+            },
+            "description": "Private API (Đã chuyển từ Public sang Private): Chỉ người dùng có Token hợp lệ mới được xem danh sách Users và Identities trong SQL Server."
+          }
+        },
+        {
+          "name": "07. [RÀNG BUỘC BẢO VỆ] Chặn Hủy Google Khi Chưa Có Mật Khẩu (Kỳ vọng: 400 Bad Request)",
           "event": [
             {
               "listen": "prerequest",
@@ -257,6 +266,7 @@
                 "exec": [
                   "pm.test('[PASS] Ràng buộc bảo vệ dữ liệu thành công: HTTP 400 Bad Request', function () {",
                   "    pm.response.to.have.status(400);",
+                  "    console.log('🛡️ [RÀNG BUỘC TOÀN VẸN]: Chặn hủy Google thành công để bảo vệ tài khoản không bị mồ côi!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -276,7 +286,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "linked-accounts", "google"]
             },
-            "description": "Kiểm tra ràng buộc nghiệp vụ: Chặn người dùng vô tình hủy Google khi chưa có mật khẩu để tránh tài khoản mồ côi."
+            "description": "Ràng buộc dữ liệu: Không cho phép hủy kênh đăng nhập duy nhất khi chưa tạo mật khẩu dự phòng."
           }
         },
         {
@@ -292,6 +302,7 @@
                   "pm.test('[PASS] Đã băm BCrypt và lưu mật khẩu dự phòng vào SQL Server', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
+                  "    console.log('🔑 [BẢO MẬT]: Đã thiết lập mật khẩu BCrypt cho tài khoản đang thao tác.');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -319,11 +330,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "password"]
             },
-            "description": "Tạo mật khẩu dự phòng băm bằng BCrypt để tránh tình trạng tài khoản mồ côi sau này."
+            "description": "Private API: Thiết lập mật khẩu dự phòng (băm an toàn bằng BCrypt)."
           }
         },
         {
-          "name": "09. Tự Động Gia Hạn Token Mới (Refresh Token)",
+          "name": "09. Tự Động Gia Hạn Token Mới Bằng Refresh Token",
           "event": [
             {
               "listen": "test",
@@ -337,6 +348,7 @@
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.accessToken).to.be.a('string');",
                   "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "    console.log('🔄 [REFRESH TOKEN]: Đã gia hạn thành công Access Token mới.');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -360,16 +372,16 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "refresh-token"]
             },
-            "description": "Tự động đổi Refresh Token lấy Access Token mới và cập nhật thẳng vào biến hệ thống."
+            "description": "Cơ chế xoay vòng Refresh Token lấy Access Token mới."
           }
         }
       ]
     },
     {
-      "name": "📂 3. BẢO VỆ PHÒNG THỦ & THU HỒI QUYỀN TỨC THÌ (REVOCATION & ZERO-TRUST)",
+      "name": "📂 3. BẢO VỆ PHÒNG THỦ & DỪNG TRUY CẬP NGAY LẬP TỨC (ZERO-TRUST & REVOCATION)",
       "item": [
         {
-          "name": "10. [PHÒNG THỦ 1] Chặn Người Lạ Không Gửi Token (Kỳ vọng: 403 Forbidden)",
+          "name": "10. [PHÒNG THỦ 1] Chặn Người Lạ Không Gửi Token Xem Hồ Sơ (Kỳ vọng: 403 Forbidden)",
           "event": [
             {
               "listen": "test",
@@ -377,7 +389,7 @@
                 "exec": [
                   "pm.test('[PASS] Spring Security chặn đứng thành công: HTTP 403 Forbidden', function () {",
                   "    pm.response.to.have.status(403);",
-                  "    console.log('🛡️ [PHÒNG THỦ 1]: Người lạ không gửi Token -> Bị Spring Security Filter chặn đứng ngay tại cổng (403 Forbidden)!');",
+                  "    console.log('🛡️ [PHÒNG THỦ 1 - 403]: Người lạ không gửi Token gọi /api/users/me -> Bị chặn đứng ngay lập tức!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -392,11 +404,38 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me"]
             },
-            "description": "Gọi API cá nhân nhưng không gửi Bearer Token. Spring Security phát hiện và chặn đứng ngay tại Servlet Filter."
+            "description": "Gọi Private API xem hồ sơ nhưng không gửi Bearer Token -> Phải bị chặn 403 Forbidden."
           }
         },
         {
-          "name": "11. Đăng Xuất & Thu Hồi Token Vào Blacklist",
+          "name": "11. [PHÒNG THỦ 2] Chặn Người Lạ Không Gửi Token Xem CSDL SQL Server (Kỳ vọng: 403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PASS] Chặn đứng người lạ xem CSDL SQL Server: HTTP 403 Forbidden', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "    console.log('🛡️ [PHÒNG THỦ 2 - 403]: Người lạ gọi /api/users/database-viewer mà KHÔNG có Token -> Bị chặn đứng ngay lập tức (Cơ sở dữ liệu hoàn toàn an toàn)!');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/database-viewer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "database-viewer"]
+            },
+            "description": "Minh chứng CSDL đã đưa vào Private API: Bất kỳ ai không có Bearer Token đều bị từ chối truy cập 403 Forbidden."
+          }
+        },
+        {
+          "name": "12. Đăng Xuất & Thu Hồi Token Vào Blacklist",
           "event": [
             {
               "listen": "test",
@@ -405,10 +444,10 @@
                   "pm.test('[PASS] Mã phản hồi 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('[PASS] Đã ghi nhận chữ ký Token vào Danh Sách Đen (Bounded TTL Blacklist)', function () {",
+                  "pm.test('[PASS] Đã ghi nhận chữ ký Token vào Blacklist', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
-                  "    console.log('⛔ [THU HỒI QUYỀN]: Người dùng yêu cầu Đăng xuất -> Chữ ký Token bị đưa ngay vào Bounded TTL Blacklist!');",
+                  "    console.log('⛔ [THU HỒI QUYỀN]: Người dùng Đăng xuất -> Chữ ký Token bị đưa ngay vào Bounded TTL Blacklist!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -428,11 +467,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "logout"]
             },
-            "description": "Gửi lệnh đăng xuất. Gateway lưu chữ ký Token vào Bounded TTL Blacklist để vô hiệu hóa tức thì."
+            "description": "Gửi lệnh đăng xuất để thu hồi Token ngay lập tức."
           }
         },
         {
-          "name": "12. [PHÒNG THỦ 2] Chặn Tấn Công Phát Lại Token Đã Đăng Xuất (Kỳ vọng: 403 Forbidden)",
+          "name": "13. [PHÒNG THỦ 3] Chặn Dùng Lại Token Đã Thu Hồi - DỪNG NGAY LẬP TỨC (Kỳ vọng: 403 Forbidden)",
           "event": [
             {
               "listen": "test",
@@ -440,7 +479,7 @@
                 "exec": [
                   "pm.test('[PASS] Blacklist chặn đứng Replay Attack thành công: HTTP 403 Forbidden', function () {",
                   "    pm.response.to.have.status(403);",
-                  "    console.log('🚨 [DỪNG NGAY LẬP TỨC]: Kẻ xấu dùng lại Token vừa đăng xuất -> Hệ thống phát hiện Blacklist và DỪNG NGAY LẬP TỨC (403 Forbidden)!');",
+                  "    console.log('🚨 [DỪNG NGAY LẬP TỨC - 403]: Token đã bị thu hồi/ngừng cung cấp -> Mọi request tiếp theo bị DỪNG NGAY LẬP TỨC!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -460,7 +499,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me"]
             },
-            "description": "Dù Token về mặt toán học chưa hết hạn 15 phút, nhưng JwtAuthenticationFilter phát hiện nằm trong Blacklist và chặn 403 ngay lập tức!"
+            "description": "Chứng minh cơ chế dừng ngay lập tức: Dù Token còn hạn về mặt thời gian, nhưng một khi đã bị thu hồi (Blacklist) thì hệ thống DỪNG NGAY LẬP TỨC (HTTP 403 Forbidden)."
           }
         }
       ]

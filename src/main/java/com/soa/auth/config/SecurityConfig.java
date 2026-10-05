@@ -41,7 +41,6 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/docs.html",
                                 "/database.html",
-                                "/api/public/database-viewer/**",
                                 "/favicon.ico",
                                 "/static/**",
                                 "/api/auth/google/**",

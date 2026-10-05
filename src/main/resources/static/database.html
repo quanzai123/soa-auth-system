@@ -288,7 +288,23 @@
 <script>
   async function loadData() {
     try {
-      const res = await fetch('/api/public/database-viewer');
+      const token = localStorage.getItem('accessToken');
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+      const res = await fetch('/api/users/database-viewer', { headers: headers });
+      
+      if (res.status === 401 || res.status === 403) {
+        document.getElementById('usersTableBody').innerHTML = 
+          '<tr><td colspan="7" style="text-align: center; color: #f43f5e; padding: 24px;">' +
+          '🔒 <strong>TRUY CẬP BỊ TỪ CHỐI (403 FORBIDDEN):</strong><br>' +
+          'Đây là Private API bảo mật. Bạn bắt buộc phải đăng nhập và có Bearer Token hợp lệ mới được xem Cơ sở dữ liệu!' +
+          '</td></tr>';
+        document.getElementById('identitiesTableBody').innerHTML = 
+          '<tr><td colspan="6" style="text-align: center; color: #f43f5e; padding: 24px;">' +
+          '🔒 Vui lòng quay lại <a href="/" style="color: #6366f1; text-decoration: underline;">Trang chủ</a> và đăng nhập Google.' +
+          '</td></tr>';
+        return;
+      }
+
       const json = await res.json();
       if (!json.success) {
         alert('Lỗi tải dữ liệu: ' + json.message);

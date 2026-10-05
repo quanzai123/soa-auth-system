@@ -157,7 +157,15 @@ public class AuthService {
     public AuthResponse getLatestSession() {
         AuthResponse current = latestSession.get();
         if (current != null && !tokenBlacklistService.isBlacklisted(current.getAccessToken())) {
-            return current;
+            // Luôn lấy hồ sơ mới nhất từ Database để phản ánh tức thì các thao tác vừa làm trên Web (đổi mật khẩu, hủy liên kết...)
+            UserProfileDto profile = userService.getProfile(current.getUser().getEmail());
+            return AuthResponse.builder()
+                    .accessToken(current.getAccessToken())
+                    .refreshToken(current.getRefreshToken())
+                    .tokenType(current.getTokenType())
+                    .expiresIn(current.getExpiresIn())
+                    .user(profile)
+                    .build();
         }
         // Fallback: Tìm tài khoản gần nhất trong DB để cấp token sẵn sàng
         java.util.List<User> users = userRepository.findAll();

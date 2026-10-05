@@ -16,15 +16,16 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/public/database-viewer")
+@RequestMapping("/api/users/database-viewer")
 @RequiredArgsConstructor
 public class DatabaseViewerController {
 
     private final UserRepository userRepository;
     private final UserIdentityRepository userIdentityRepository;
 
+    // 🔒 PRIVATE API: Xem bản chụp toàn bộ Database SQL Server (Bắt buộc phải có Bearer Token)
     @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getDatabaseSnapshot() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDatabaseSnapshot(org.springframework.security.core.Authentication authentication) {
         List<Map<String, Object>> userList = userRepository.findAll().stream().map(u -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", u.getId());
@@ -57,12 +58,13 @@ public class DatabaseViewerController {
         Map<String, Object> data = new HashMap<>();
         data.put("database", "google_login_db");
         data.put("host", "localhost:1433 (Microsoft SQL Server 2022 Docker)");
+        data.put("requestedBy", authentication != null ? authentication.getName() : "ANONYMOUS");
         data.put("totalUsers", userList.size());
         data.put("totalIdentities", identityList.size());
         data.put("users", userList);
         data.put("identities", identityList);
 
         return ResponseEntity
-                .ok(ApiResponse.ok("Dữ liệu trực tiếp từ SQL Server (Đã che giấu thông tin nhạy cảm)", data));
+                .ok(ApiResponse.ok("Dữ liệu trực tiếp từ SQL Server (Chỉ cấp quyền cho người dùng có Bearer Token hợp lệ)", data));
     }
 }
