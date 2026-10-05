@@ -24,7 +24,7 @@
   ],
   "item": [
     {
-      "name": "📂 1. CÁC API CÔNG KHAI (PUBLIC APIS)",
+      "name": "📂 1. CÁC API CÔNG KHAI (PUBLIC APIS - KHÔNG CẦN TOKEN)",
       "item": [
         {
           "name": "01. Lấy URL Đăng Nhập Google SSO (RFC 6749)",
@@ -122,7 +122,7 @@
       ]
     },
     {
-      "name": "📂 2. BẢO MẬT & XÁC THỰC DANH TÍNH (JWT IDENTITY)",
+      "name": "📂 2. CÁC API RIÊNG TƯ (PRIVATE APIS - ĐIỀU KIỆN: CÓ BEARER TOKEN)",
       "item": [
         {
           "name": "04. Tự Động Đồng Bộ Token Đang Đăng Nhập (Tự Động Nhận Diện Tài Khoản)",
@@ -173,7 +173,7 @@
                   "    pm.expect(json.success).to.be.true;",
                   "    pm.expect(json.data.email).to.be.a('string').and.not.empty;",
                   "    pm.expect(json.data.accountType).to.be.oneOf(['STUDENT', 'LECTURER', 'PERSONAL']);",
-                  "    console.log('Hồ sơ xác thực:', json.data.fullName, '<' + json.data.email + '>', 'Vai trò:', json.data.accountType);",
+                  "    console.log('✅ [TRUY CẬP PRIVATE HỢP LỆ]: Token có chữ ký số hợp lệ -> Cấp quyền truy cập hồ sơ:', json.data.fullName, '<' + json.data.email + '>', '| Vai trò:', json.data.accountType);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -366,7 +366,7 @@
       ]
     },
     {
-      "name": "📂 3. KIỂM THỬ PHÒNG THỦ & THU HỒI TOKEN (SECURITY DEFENSE)",
+      "name": "📂 3. BẢO VỆ PHÒNG THỦ & THU HỒI QUYỀN TỨC THÌ (REVOCATION & ZERO-TRUST)",
       "item": [
         {
           "name": "10. [PHÒNG THỦ 1] Chặn Người Lạ Không Gửi Token (Kỳ vọng: 403 Forbidden)",
@@ -377,6 +377,7 @@
                 "exec": [
                   "pm.test('[PASS] Spring Security chặn đứng thành công: HTTP 403 Forbidden', function () {",
                   "    pm.response.to.have.status(403);",
+                  "    console.log('🛡️ [PHÒNG THỦ 1]: Người lạ không gửi Token -> Bị Spring Security Filter chặn đứng ngay tại cổng (403 Forbidden)!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -407,6 +408,7 @@
                   "pm.test('[PASS] Đã ghi nhận chữ ký Token vào Danh Sách Đen (Bounded TTL Blacklist)', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
+                  "    console.log('⛔ [THU HỒI QUYỀN]: Người dùng yêu cầu Đăng xuất -> Chữ ký Token bị đưa ngay vào Bounded TTL Blacklist!');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -438,6 +440,7 @@
                 "exec": [
                   "pm.test('[PASS] Blacklist chặn đứng Replay Attack thành công: HTTP 403 Forbidden', function () {",
                   "    pm.response.to.have.status(403);",
+                  "    console.log('🚨 [DỪNG NGAY LẬP TỨC]: Kẻ xấu dùng lại Token vừa đăng xuất -> Hệ thống phát hiện Blacklist và DỪNG NGAY LẬP TỨC (403 Forbidden)!');",
                   "});"
                 ],
                 "type": "text/javascript"
