@@ -39,17 +39,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!tokenBlacklistService.isBlacklisted(token) && jwtTokenProvider.validateToken(token)) {
                 Claims claims = jwtTokenProvider.getClaimsFromToken(token);
                 String email = claims.getSubject();
-                String role = (String) claims.get("role");
+                long issuedAt = claims.getIssuedAt() != null ? claims.getIssuedAt().getTime() : 0;
 
-                List<GrantedAuthority> authorities = role != null
-                        ? List.of(new SimpleGrantedAuthority(role))
-                        : Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+                // Nếu người dùng đã bấm Đăng xuất trước thời điểm cấp token này -> Không xác thực
+                if (!tokenBlacklistService.isUserLoggedOutBefore(email, issuedAt)) {
+                    String role = (String) claims.get("role");
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(email, null, authorities);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    List<GrantedAuthority> authorities = role != null
+                            ? List.of(new SimpleGrantedAuthority(role))
+                            : Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(email, null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         }
 

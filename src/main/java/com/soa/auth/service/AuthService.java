@@ -133,9 +133,24 @@ public class AuthService {
             throw new IllegalArgumentException("Refresh token không hợp lệ hoặc đã hết hạn!");
         }
 
+        // 1. Kiểm tra xem Refresh Token có nằm trong Blacklist thu hồi không
+        if (tokenBlacklistService.isBlacklisted(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token đã bị thu hồi do người dùng đã đăng xuất! Vui lòng đăng nhập lại.");
+        }
+
         String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+        long issuedAt = jwtTokenProvider.getClaimsFromToken(refreshToken).getIssuedAt().getTime();
+
+        // 2. Kiểm tra xem tài khoản này đã bấm Đăng xuất trước thời điểm cấp Refresh Token không
+        if (tokenBlacklistService.isUserLoggedOutBefore(email, issuedAt)) {
+            throw new IllegalArgumentException("Phiên làm việc đã kết thúc (đã đăng xuất). Vui lòng đăng nhập lại!");
+        }
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng cho refresh token này."));
+
+        // 3. Cơ chế Refresh Token Rotation (RFC 6749): Thu hồi Refresh Token cũ ngay khi dùng
+        tokenBlacklistService.blacklistToken(refreshToken, System.currentTimeMillis() + 7L * 24 * 3600 * 1000);
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole(),
                 user.getAccountType());
@@ -266,10 +281,23 @@ public class AuthService {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             String token = bearerToken.substring(7);
             if (jwtTokenProvider.validateToken(token)) {
+                String email = jwtTokenProvider.getEmailFromToken(token);
                 long expiration = jwtTokenProvider.getExpirationEpochMs(token);
+                
+                // 1. Đưa Access Token vào Blacklist
                 tokenBlacklistService.blacklistToken(token, expiration);
+                
+                // 2. Ghi nhận mốc thời gian đăng xuất của user để vô hiệu hóa mọi token sinh trước đó
+                tokenBlacklistService.recordUserLogout(email);
+                
+                // 3. Nếu phiên làm việc có lưu Refresh Token, thu hồi luôn Refresh Token
+                AuthResponse current = latestSession.get();
+                if (current != null && current.getRefreshToken() != null) {
+                    tokenBlacklistService.blacklistToken(current.getRefreshToken(), System.currentTimeMillis() + 7L * 24 * 3600 * 1000);
+                }
+                
                 latestSession.set(null);
-                log.info("Đã đưa token vào Blacklist thu hồi thành công và xóa session hiện tại.");
+                log.info("Đã đưa token vào Blacklist và vô hiệu hóa toàn bộ Refresh Token của user: {}", email);
             }
         }
     }
