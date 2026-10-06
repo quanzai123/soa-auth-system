@@ -479,6 +479,26 @@
           "name": "13. [PHÒNG THỦ 3] Chặn Dùng Lại Token Đã Thu Hồi - DỪNG NGAY LẬP TỨC (Kỳ vọng: 403 Forbidden)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var token = pm.collectionVariables.get('accessToken');",
+                  "if (token) {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('baseUrl') + '/api/auth/logout',",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Authorization': 'Bearer ' + token",
+                  "        }",
+                  "    }, function (err, res) {",
+                  "        // Đảm bảo Token chắc chắn đã bị thu hồi vào Blacklist",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
