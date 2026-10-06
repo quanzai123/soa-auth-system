@@ -298,6 +298,24 @@
           "name": "08. Thiết Lập Mật Khẩu Dự Phòng Cho Tài Khoản (BCrypt)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "if (!pm.variables.get('noPasswordToken')) {",
+                  "    pm.sendRequest({",
+                  "        url: pm.collectionVariables.get('baseUrl') + '/api/auth/demo-token?noPassword=true',",
+                  "        method: 'GET'",
+                  "    }, function (err, res) {",
+                  "        if (!err && res.code === 200) {",
+                  "            pm.variables.set('noPasswordToken', res.json().data.accessToken);",
+                  "        }",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -307,7 +325,7 @@
                   "pm.test('[PASS] Đã băm BCrypt và lưu mật khẩu dự phòng vào SQL Server', function () {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.success).to.be.true;",
-                  "    console.log('🔑 [BẢO MẬT]: Đã thiết lập mật khẩu BCrypt cho tài khoản đang thao tác.');",
+                  "    console.log('🔑 [BẢO MẬT]: Đã thiết lập mật khẩu BCrypt cho tài khoản kiểm thử thành công.');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -319,7 +337,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "value": "Bearer {{noPasswordToken}}"
               },
               {
                 "key": "Content-Type",
@@ -335,7 +353,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "users", "me", "password"]
             },
-            "description": "Private API: Thiết lập mật khẩu dự phòng (băm an toàn bằng BCrypt)."
+            "description": "Private API: Thiết lập mật khẩu dự phòng (băm an toàn bằng BCrypt) trên tài khoản thử nghiệm."
           }
         },
         {
