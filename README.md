@@ -147,7 +147,7 @@ chmod +x test-external-actors.sh
 npx --yes newman run soa-auth-collection.json
 ```
 
-**Test Results:** 14/14 API requests and 21/21 assertions passed with 0 failures (100% test coverage including Blacklist revocation, live session sync, and RBAC boundaries).
+**Test Results:** 8/8 API requests and 15/15 assertions passed with 0 failures (100% test coverage including OAuth 2.0 discovery, live session sync, profile extraction, SQL Server database viewer, Refresh Token rotation, and Bounded TTL Blacklist revocation).
 
 ---
 
