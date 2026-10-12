@@ -123,12 +123,21 @@ app:
 git clone https://github.com/quanzai123/soa-auth-system.git
 cd soa-auth-system
 
-# Run with Maven Wrapper
+# (Optional) Copy .env if you wish to configure your own Google OAuth Client:
+cp .env.example .env
+
+# Run with Maven Wrapper (No Maven installation required)
+# On macOS / Linux:
 ./mvnw spring-boot:run
+
+# On Windows (cmd / PowerShell):
+mvnw.cmd spring-boot:run
 ```
 
 Access the application portal at: **`http://localhost:8080`**  
 Access the real-time Database Viewer at: **`http://localhost:8080/database.html`**
+
+> **💡 Zero-Config Instant Testing:** The system automatically seeds verified demo accounts (TDTU Student `524h0122@student.tdtu.edu.vn` with `ROLE_STUDENT` and Personal `quan03313@gmail.com` with `ROLE_PERSONAL`). Classmates can test domain-based RBAC, JWT generation, and SQL Server protection immediately via the 1-click Quick Login buttons on the Web Portal or via the Postman collection without requiring any Google Cloud setup!
 
 ---
 
