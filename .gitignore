@@ -55,4 +55,6 @@ build/
 *.key
 *.mp4
 *.mov
+*ket_qua*
+*result*
 
