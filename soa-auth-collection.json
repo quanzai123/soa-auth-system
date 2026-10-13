@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8080",
+      "value": "https://unwomanly-suitable-glade.ngrok-free.dev",
       "type": "string"
     },
     {
