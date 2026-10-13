@@ -10,8 +10,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #0f172a;
-    color: #f8fafc;
+    background: #f8fafc;
+    color: #0f172a;
     padding: 30px 20px;
   }
   .container {
@@ -22,14 +22,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #e2e8f0;
     padding-bottom: 20px;
     margin-bottom: 24px;
   }
   h1 {
     font-size: 26px;
     font-weight: 800;
-    color: #38bdf8;
+    color: #0284c7;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -38,9 +38,9 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(34, 197, 94, 0.15);
-    color: #4ade80;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 13px;
@@ -49,18 +49,18 @@
   .status-dot {
     width: 8px;
     height: 8px;
-    background: #22c55e;
+    background: #16a34a;
     border-radius: 50%;
-    box-shadow: 0 0 10px #22c55e;
+    box-shadow: 0 0 8px #16a34a;
   }
   .nav-links {
     display: flex;
     gap: 12px;
   }
   .btn {
-    background: #1e293b;
-    color: #f8fafc;
-    border: 1px solid #475569;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 14px;
@@ -71,12 +71,13 @@
   }
   .btn:hover {
     background: #2563eb;
-    border-color: #3b82f6;
+    border-color: #2563eb;
     color: #fff;
   }
   .btn-primary {
     background: #2563eb;
-    border-color: #3b82f6;
+    border-color: #2563eb;
+    color: #fff;
   }
 
   .meta-grid {
@@ -86,14 +87,15 @@
     margin-bottom: 24px;
   }
   .meta-card {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
   .meta-label {
     font-size: 12px;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -102,13 +104,13 @@
   .meta-val {
     font-size: 18px;
     font-weight: 700;
-    color: #ffffff;
+    color: #0f172a;
     font-family: 'JetBrains Mono', monospace;
   }
 
   .guide-box {
-    background: rgba(37, 99, 235, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 12px;
     padding: 18px 24px;
     margin-bottom: 28px;
@@ -116,7 +118,7 @@
   .guide-title {
     font-size: 15px;
     font-weight: 700;
-    color: #60a5fa;
+    color: #1d4ed8;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -124,26 +126,26 @@
   }
   .guide-steps {
     font-size: 13.5px;
-    color: #cbd5e1;
+    color: #334155;
     line-height: 1.6;
   }
 
   .section-title {
     font-size: 19px;
     font-weight: 700;
-    color: #ffffff;
+    color: #0f172a;
     margin-bottom: 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .table-wrapper {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 30px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
   }
   table {
     width: 100%;
@@ -151,23 +153,23 @@
     font-size: 13.5px;
   }
   th {
-    background: #0f172a;
-    color: #94a3b8;
+    background: #f1f5f9;
+    color: #475569;
     font-weight: 700;
     text-align: left;
     padding: 12px 16px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid #e2e8f0;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   td {
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: #e2e8f0;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
   }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr:hover td { background: #f8fafc; }
 
   .badge {
     display: inline-block;
@@ -177,15 +179,15 @@
     font-weight: 700;
     text-transform: uppercase;
   }
-  .badge-student { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
-  .badge-personal { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
-  .badge-google { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+  .badge-student { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .badge-personal { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+  .badge-google { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 
   code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.1);
+    color: #0284c7;
+    background: #e0f2fe;
     padding: 2px 6px;
     border-radius: 4px;
   }
@@ -197,7 +199,7 @@
   <header>
     <div>
       <h1><span>🗄️</span> SQL Server Live Database Viewer</h1>
-      <p style="color: #94a3b8; font-size: 14px; margin-top: 4px;">Xem trực tiếp dữ liệu từ Microsoft SQL Server (Docker) theo thời gian thực</p>
+      <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Xem trực tiếp dữ liệu từ Microsoft SQL Server (Docker) theo thời gian thực</p>
     </div>
     <div class="nav-links">
       <button class="btn btn-primary" onclick="loadData()">🔄 Làm mới dữ liệu</button>
@@ -209,7 +211,7 @@
   <div class="meta-grid">
     <div class="meta-card">
       <div class="meta-label">DATABASE & HOST</div>
-      <div class="meta-val" style="color: #38bdf8;">google_login_db</div>
+      <div class="meta-val" style="color: #0284c7;">google_login_db</div>
       <div style="font-size: 12px; color: #64748b; margin-top: 4px;">localhost:1433 (Docker)</div>
     </div>
     <div class="meta-card">
@@ -220,11 +222,11 @@
     </div>
     <div class="meta-card">
       <div class="meta-label">TỔNG TÀI KHOẢN (USERS)</div>
-      <div class="meta-val" id="totalUsersCount" style="color: #4ade80;">--</div>
+      <div class="meta-val" id="totalUsersCount" style="color: #16a34a;">--</div>
     </div>
     <div class="meta-card">
       <div class="meta-label">LIÊN KẾT GOOGLE (IDENTITIES)</div>
-      <div class="meta-val" id="totalIdentitiesCount" style="color: #c084fc;">--</div>
+      <div class="meta-val" id="totalIdentitiesCount" style="color: #9333ea;">--</div>
     </div>
   </div>
 
@@ -241,7 +243,7 @@
 
   <div class="section-title">
     <span>BẢNG 1: users (Danh sách Người Dùng & Hồ Sơ Gốc)</span>
-    <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">Bảng chính lưu email, role và mật khẩu dự phòng</span>
+    <span style="font-size: 13px; color: #64748b; font-weight: normal;">Bảng chính lưu email, role và mật khẩu dự phòng</span>
   </div>
   <div class="table-wrapper">
     <table>
@@ -257,14 +259,14 @@
         </tr>
       </thead>
       <tbody id="usersTableBody">
-        <tr><td colspan="7" style="text-align: center; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
+        <tr><td colspan="7" style="text-align: center; color: #64748b;">Đang tải dữ liệu...</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="section-title">
     <span>BẢNG 2: user_identities (Danh sách Định Danh Google OAuth 2.0)</span>
-    <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">Bảng lưu Google Subject ID (sub) bất biến</span>
+    <span style="font-size: 13px; color: #64748b; font-weight: normal;">Bảng lưu Google Subject ID (sub) bất biến</span>
   </div>
   <div class="table-wrapper">
     <table>
@@ -279,7 +281,7 @@
         </tr>
       </thead>
       <tbody id="identitiesTableBody">
-        <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Đang tải dữ liệu...</td></tr>
+        <tr><td colspan="6" style="text-align: center; color: #64748b;">Đang tải dữ liệu...</td></tr>
       </tbody>
     </table>
   </div>
@@ -294,13 +296,13 @@
       
       if (res.status === 401 || res.status === 403) {
         document.getElementById('usersTableBody').innerHTML = 
-          '<tr><td colspan="7" style="text-align: center; color: #f43f5e; padding: 24px;">' +
+          '<tr><td colspan="7" style="text-align: center; color: #e11d48; padding: 24px;">' +
           '🔒 <strong>TRUY CẬP BỊ TỪ CHỐI (403 FORBIDDEN):</strong><br>' +
           'Đây là Private API bảo mật. Bạn bắt buộc phải đăng nhập và có Bearer Token hợp lệ mới được xem Cơ sở dữ liệu!' +
           '</td></tr>';
         document.getElementById('identitiesTableBody').innerHTML = 
-          '<tr><td colspan="6" style="text-align: center; color: #f43f5e; padding: 24px;">' +
-          '🔒 Vui lòng quay lại <a href="/" style="color: #6366f1; text-decoration: underline;">Trang chủ</a> và đăng nhập Google.' +
+          '<tr><td colspan="6" style="text-align: center; color: #e11d48; padding: 24px;">' +
+          '🔒 Vui lòng quay lại <a href="/" style="color: #4f46e5; text-decoration: underline;">Trang chủ</a> và đăng nhập Google.' +
           '</td></tr>';
         return;
       }
@@ -318,7 +320,7 @@
       // Render Users Table
       const usersTbody = document.getElementById('usersTableBody');
       if (data.users.length === 0) {
-        usersTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">Chưa có người dùng nào</td></tr>';
+        usersTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b;">Chưa có người dùng nào</td></tr>';
       } else {
         usersTbody.innerHTML = data.users.map(u => {
           const isStudent = u.accountType === 'STUDENT';
@@ -327,7 +329,7 @@
             : '<span class="badge badge-personal">PERSONAL</span>';
           const passHash = u.passwordHash 
             ? `<code>${u.passwordHash.substring(0, 20)}...</code>` 
-            : '<span style="color: #64748b;">Chưa thiết lập</span>';
+            : '<span style="color: #94a3b8;">Chưa thiết lập</span>';
           
           return `
             <tr>
@@ -335,9 +337,9 @@
               <td><code>${u.email}</code></td>
               <td><strong>${u.fullName || '--'}</strong></td>
               <td>${typeBadge}</td>
-              <td><span class="badge" style="background:rgba(255,255,255,0.1); color:#fff;">${u.role}</span></td>
+              <td><span class="badge" style="background:#e2e8f0; color:#334155;">${u.role}</span></td>
               <td>${passHash}</td>
-              <td style="color: #94a3b8; font-size: 12.5px;">${u.createdAt ? u.createdAt.replace('T', ' ').substring(0, 19) : '--'}</td>
+              <td style="color: #64748b; font-size: 12.5px;">${u.createdAt ? u.createdAt.replace('T', ' ').substring(0, 19) : '--'}</td>
             </tr>
           `;
         }).join('');
@@ -346,17 +348,17 @@
       // Render Identities Table
       const identitiesTbody = document.getElementById('identitiesTableBody');
       if (data.identities.length === 0) {
-        identitiesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">Chưa có liên kết Google nào</td></tr>';
+        identitiesTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">Chưa có liên kết Google nào</td></tr>';
       } else {
         identitiesTbody.innerHTML = data.identities.map(i => {
           return `
             <tr>
               <td><strong>${i.id}</strong></td>
-              <td><span class="badge" style="background:#334155; color:#fff;">User #${i.user.id}</span></td>
+              <td><span class="badge" style="background:#f1f5f9; color:#475569; border: 1px solid #cbd5e1;">User #${i.user.id}</span></td>
               <td><span class="badge badge-google">${i.provider}</span></td>
               <td><code>${i.providerUserId}</code></td>
               <td>${i.providerEmail || '--'}</td>
-              <td style="color: #94a3b8; font-size: 12.5px;">${i.linkedAt ? i.linkedAt.replace('T', ' ').substring(0, 19) : '--'}</td>
+              <td style="color: #64748b; font-size: 12.5px;">${i.linkedAt ? i.linkedAt.replace('T', ' ').substring(0, 19) : '--'}</td>
             </tr>
           `;
         }).join('');
@@ -374,4 +376,3 @@
 
 </body>
 </html>
-
