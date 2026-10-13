@@ -206,19 +206,40 @@ public class AuthService {
 
     public AuthResponse getLatestSession() {
         AuthResponse current = latestSession.get();
-        if (current != null && !tokenBlacklistService.isBlacklisted(current.getAccessToken())) {
-            // Luôn lấy hồ sơ mới nhất từ Database để phản ánh tức thì các thao tác vừa làm trên Web (đổi mật khẩu, hủy liên kết...)
-            UserProfileDto profile = userService.getProfile(current.getUser().getEmail());
-            return AuthResponse.builder()
-                    .accessToken(current.getAccessToken())
-                    .refreshToken(current.getRefreshToken())
-                    .tokenType(current.getTokenType())
-                    .expiresIn(current.getExpiresIn())
-                    .user(profile)
-                    .build();
+        if (current == null) {
+            return null;
         }
-        // Tuyệt đối không tự ý fallback sang tài khoản khác! Nếu Web chưa đăng nhập thì trả về null
-        return null;
+        if (tokenBlacklistService.isBlacklisted(current.getAccessToken())) {
+            latestSession.set(null);
+            return null;
+        }
+        // Nếu Access Token đã hết hạn, tự động dùng Refresh Token gia hạn nếu còn hạn
+        if (!jwtTokenProvider.validateToken(current.getAccessToken())) {
+            if (current.getRefreshToken() != null && jwtTokenProvider.validateToken(current.getRefreshToken())
+                    && !tokenBlacklistService.isBlacklisted(current.getRefreshToken())) {
+                try {
+                    AuthResponse refreshed = refreshToken(current.getRefreshToken());
+                    latestSession.set(refreshed);
+                    return refreshed;
+                } catch (Exception e) {
+                    latestSession.set(null);
+                    return null;
+                }
+            } else {
+                latestSession.set(null);
+                return null;
+            }
+        }
+
+        // Token đang hợp lệ: Lấy hồ sơ mới nhất từ Database
+        UserProfileDto profile = userService.getProfile(current.getUser().getEmail());
+        return AuthResponse.builder()
+                .accessToken(current.getAccessToken())
+                .refreshToken(current.getRefreshToken())
+                .tokenType(current.getTokenType())
+                .expiresIn(current.getExpiresIn())
+                .user(profile)
+                .build();
     }
 
     public AuthResponse seedDefaultTestSession() {
