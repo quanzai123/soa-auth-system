@@ -184,26 +184,6 @@ public class AuthService {
         }
     }
 
-    public AuthResponse quickLogin(String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            return null;
-        }
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole(), user.getAccountType());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
-        UserProfileDto profile = userService.getProfile(user.getEmail());
-        AuthResponse response = AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
-                .user(profile)
-                .build();
-        latestSession.set(response);
-        log.info("Người dùng đăng nhập thành công trên Web: {} (Loại: {})", email, user.getAccountType());
-        return response;
-    }
-
     public AuthResponse getLatestSession() {
         AuthResponse current = latestSession.get();
         if (current == null) {
@@ -240,62 +220,6 @@ public class AuthService {
                 .expiresIn(current.getExpiresIn())
                 .user(profile)
                 .build();
-    }
-
-    public AuthResponse seedDefaultTestSession() {
-        // Chỉ dùng khi chạy kiểm thử tự động Newman CLI từ dòng lệnh
-        User student = userRepository.findByEmail("524h0122@student.tdtu.edu.vn")
-                .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
-        if (student != null) {
-            String accessToken = jwtTokenProvider.generateAccessToken(student.getEmail(), student.getRole(), student.getAccountType());
-            String refreshToken = jwtTokenProvider.generateRefreshToken(student.getEmail());
-            UserProfileDto profile = userService.getProfile(student.getEmail());
-            AuthResponse resp = AuthResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .tokenType("Bearer")
-                    .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
-                    .user(profile)
-                    .build();
-            latestSession.set(resp);
-            return resp;
-        }
-        return null;
-    }
-
-    public AuthResponse getDemoNoPasswordSession() {
-        User user = userRepository.findByEmail("hieuhieu5933@gmail.com")
-                .orElseGet(() -> userRepository.findAll().stream()
-                        .filter(u -> u.getPasswordHash() == null)
-                        .findFirst()
-                        .orElse(null));
-        if (user != null) {
-            // Đảm bảo tài khoản demo này không có mật khẩu để kiểm thử ràng buộc bảo vệ
-            user.setPasswordHash(null);
-            userRepository.save(user);
-
-            // Đảm bảo user này luôn có Google identity mẫu
-            if (userIdentityRepository.findByUserId(user.getId()).isEmpty()) {
-                userIdentityRepository.save(UserIdentity.builder()
-                        .user(user)
-                        .provider("GOOGLE")
-                        .providerUserId("106790612631009028951")
-                        .providerEmail(user.getEmail())
-                        .accessToken("ya29.demo_test_token")
-                        .build());
-            }
-            String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole(), user.getAccountType());
-            String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
-            UserProfileDto profile = userService.getProfile(user.getEmail());
-            return AuthResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .tokenType("Bearer")
-                    .expiresIn(jwtTokenProvider.getExpirationMs() / 1000)
-                    .user(profile)
-                    .build();
-        }
-        return null;
     }
 
     public void logout(String bearerToken) {

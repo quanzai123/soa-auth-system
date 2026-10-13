@@ -48,9 +48,12 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 ### Quy trình tự test từng bước:
 1. **Import vào Postman:**
    * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Chọn file `soa-auth-collection.json`.
-2. **Lấy Token từ Web:**
-   * Truy cập [http://localhost:8080](http://localhost:8080).
-   * Bạn có thể bấm **Đăng nhập Google** hoặc bấm nút **"Đăng nhập nhanh Sinh viên TDTU"** (Hệ thống có sẵn dữ liệu mẫu, không cần cấu hình Google Cloud vẫn test được ngay).
+2. **Đăng nhập trên Web:**
+   * Mở trình duyệt truy cập [http://localhost:8080](http://localhost:8080).
+   * Bấm nút **"Đăng nhập an toàn với Google"** và đăng nhập bằng tài khoản Google của bạn.
+   * Hệ thống sẽ tự động phân loại quyền hạn:
+     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $\rightarrow$ Cấp quyền `ROLE_STUDENT`.
+     - Email cá nhân thông thường (`@gmail.com`) $\rightarrow$ Cấp quyền `ROLE_PERSONAL`.
 3. **Chạy các API trong Postman:**
    * Chạy lần lượt các Request từ **01 đến 10** trong Collection:
      - **01 - 02:** Kiểm tra API Public (Cấu hình Google OAuth, Lấy URL SSO).
@@ -62,28 +65,17 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 
 ---
 
-## 👥 Tài Khoản Dùng Thử Có Sẵn (Zero-Config)
-Hệ thống đã nạp sẵn 2 tài khoản mẫu trong Database để bạn test ngay lập tức:
-
-| Tài khoản | Email | Phân quyền (RBAC) | Loại tài khoản |
-| :--- | :--- | :--- | :--- |
-| **Sinh viên TDTU** | `524h0122@student.tdtu.edu.vn` | `ROLE_STUDENT` | `STUDENT` |
-| **Tài khoản cá nhân** | `quan03313@gmail.com` | `ROLE_PERSONAL` | `PERSONAL` |
-
----
-
 ## 🛠️ Danh Sách API (RESTful Endpoints)
 
 | Phương thức | Endpoint | Quyền truy cập | Mô tả chức năng |
 | :---: | :--- | :---: | :--- |
-| `GET` | `/api/auth/google/url` | Public | Lấy URL đăng nhập Google OAuth 2.0 |
+| `GET` | `/api/auth/google/url` | Public | Lấy URL đăng nhập Google OAuth 2.0 (RFC 6749) |
 | `GET` | `/api/auth/google/config` | Public | Lấy cấu hình Client ID & Redirect URI |
 | `POST` | `/api/auth/google/callback` | Public | Trao đổi Authorization Code lấy Token JWT |
-| `POST` | `/api/auth/quick-login` | Public | Đăng nhập nhanh tài khoản thử nghiệm |
-| `GET` | `/api/auth/latest-token` | Public | Tự động đồng bộ phiên từ Web sang Postman |
+| `GET` | `/api/auth/latest-token` | Public | Tự động đồng bộ phiên đăng nhập từ Web sang Postman |
 | `POST` | `/api/auth/refresh-token` | Public | Cấp lại Access Token mới (15 phút) bằng Refresh Token |
 | `POST` | `/api/auth/logout` | Bearer Token | Đăng xuất & đưa token vào Blacklist |
-| `GET` | `/api/users/me` | Bearer Token | Xem thông tin hồ sơ người dùng |
+| `GET` | `/api/users/me` | Bearer Token | Xem thông tin hồ sơ người dùng hiện tại |
 | `GET` | `/api/users/me/linked-accounts` | Bearer Token | Xem danh sách tài khoản liên kết Google |
 | `GET` | `/api/users/database-viewer` | Bearer Token | Xem các bản ghi trong SQL Server 2022 |
 
