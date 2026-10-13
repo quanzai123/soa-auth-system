@@ -217,19 +217,67 @@
                         </div>
                     </div>
 
-                    <!-- JWT Token Management Card -->
-                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-key text-amber-400"></i>
-                                Mã JWT Access Token (Stateless)
+                    <!-- BỘ ĐẾM THỜI GIAN SỐNG CỦA TOKEN (REAL-TIME COUNTDOWN) -->
+                    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-stopwatch text-cyan-400 text-sm"></i>
+                                Bộ Đếm Thời Gian Sống Token
                             </h3>
-                            <button onclick="copyToken()" class="text-xs text-slate-400 hover:text-white" title="Copy Token">
-                                <i class="fa-regular fa-copy"></i> Copy
-                            </button>
+                            <span id="tokenStatusBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                🟢 Đang hoạt động
+                            </span>
                         </div>
-                        <div class="bg-slate-950 rounded-xl p-3 border border-slate-800/80 font-mono text-[11px] break-all max-h-32 overflow-y-auto text-emerald-400" id="tokenDisplay">
-                            Chưa có token.
+
+                        <!-- 1. Access Token Timer (15 phút) -->
+                        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-key text-amber-400"></i> Access Token (15 phút)
+                                </span>
+                                <span id="accessCountdown" class="font-mono font-bold text-sm text-cyan-300">
+                                    15:00
+                                </span>
+                            </div>
+                            <!-- Thanh tiến trình thời gian trực quan -->
+                            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                                <div id="accessProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-1000" style="width: 100%;"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                                <span id="accessExpTime">Hết hạn lúc: --:--:--</span>
+                                <button onclick="testRefreshToken()" class="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-rotate text-[10px]"></i> Gia hạn ngay
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Refresh Token Timer (7 ngày) -->
+                        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved text-purple-400"></i> Refresh Token (7 ngày)
+                                </span>
+                                <span id="refreshCountdown" class="font-mono font-bold text-xs text-purple-300">
+                                    7 ngày còn lại
+                                </span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                                <span id="refreshExpTime">Hết hạn: --/--/----</span>
+                                <span class="text-slate-400 font-mono">Token Rotation</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Chuỗi Token & Nút Copy -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs text-slate-400">
+                                <span>Chuỗi JWT Bearer Token:</span>
+                                <button onclick="copyToken()" class="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] transition">
+                                    <i class="fa-regular fa-copy"></i> Sao chép
+                                </button>
+                            </div>
+                            <div class="bg-slate-950 rounded-xl p-2.5 border border-slate-800/80 font-mono text-[10px] break-all max-h-20 overflow-y-auto text-emerald-400/90" id="tokenDisplay">
+                                Chưa có token.
+                            </div>
                         </div>
                     </div>
 
@@ -790,16 +838,144 @@
             updateTokenUI();
         }
 
-        function updateTokenUI() {
-            const display = document.getElementById("tokenDisplay");
-            if (currentAccessToken) {
-                display.textContent = currentAccessToken;
-            } else {
-                display.textContent = "Chưa có token.";
+        let countdownTimerInterval = null;
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
             }
         }
 
+        function startTokenCountdown() {
+            if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+
+            function updateTimers() {
+                const accessElem = document.getElementById("accessCountdown");
+                const refreshElem = document.getElementById("refreshCountdown");
+                const pBar = document.getElementById("accessProgressBar");
+                const badgeElem = document.getElementById("tokenStatusBadge");
+                const accessExpText = document.getElementById("accessExpTime");
+                const refreshExpText = document.getElementById("refreshExpTime");
+
+                if (!accessElem) return;
+
+                if (!currentAccessToken) {
+                    accessElem.textContent = "--:--";
+                    if (refreshElem) refreshElem.textContent = "--";
+                    if (pBar) pBar.style.width = "0%";
+                    if (badgeElem) {
+                        badgeElem.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-800 text-slate-400";
+                        badgeElem.textContent = "⚪ Chưa có token";
+                    }
+                    if (accessExpText) accessExpText.textContent = "Hết hạn lúc: --:--:--";
+                    if (refreshExpText) refreshExpText.textContent = "Hết hạn: --/--/----";
+                    return;
+                }
+
+                const accessPayload = parseJwt(currentAccessToken);
+                const refreshPayload = currentRefreshToken ? parseJwt(currentRefreshToken) : null;
+                const nowSec = Math.floor(Date.now() / 1000);
+
+                // 1. Tính toán Access Token (15 phút)
+                if (accessPayload && accessPayload.exp) {
+                    const totalDuration = (accessPayload.exp - accessPayload.iat) || 900;
+                    const remainingSec = accessPayload.exp - nowSec;
+                    const expDate = new Date(accessPayload.exp * 1000);
+                    if (accessExpText) accessExpText.textContent = "Hết hạn lúc: " + expDate.toLocaleTimeString('vi-VN');
+
+                    if (remainingSec <= 0) {
+                        accessElem.textContent = "00:00 (HẾT HẠN)";
+                        accessElem.className = "font-mono font-bold text-sm text-rose-400 animate-pulse";
+                        if (pBar) {
+                            pBar.style.width = "0%";
+                            pBar.className = "h-full bg-rose-500";
+                        }
+                        if (badgeElem) {
+                            badgeElem.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30";
+                            badgeElem.textContent = "🔴 Token đã hết hạn";
+                        }
+                    } else {
+                        const mins = Math.floor(remainingSec / 60);
+                        const secs = remainingSec % 60;
+                        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                        accessElem.textContent = timeStr;
+
+                        const percent = Math.max(0, Math.min(100, (remainingSec / totalDuration) * 100));
+                        if (pBar) pBar.style.width = percent + "%";
+
+                        if (percent > 40) {
+                            accessElem.className = "font-mono font-bold text-sm text-cyan-300";
+                            if (pBar) pBar.className = "h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-1000";
+                            if (badgeElem) {
+                                badgeElem.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                                badgeElem.textContent = "🟢 Đang hoạt động (" + timeStr + ")";
+                            }
+                        } else if (percent > 15) {
+                            accessElem.className = "font-mono font-bold text-sm text-amber-300";
+                            if (pBar) pBar.className = "h-full bg-amber-500 transition-all duration-1000";
+                            if (badgeElem) {
+                                badgeElem.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                                badgeElem.textContent = "🟡 Sắp hết hạn (" + timeStr + ")";
+                            }
+                        } else {
+                            accessElem.className = "font-mono font-bold text-sm text-rose-400 animate-pulse";
+                            if (pBar) pBar.className = "h-full bg-rose-500 transition-all duration-1000";
+                            if (badgeElem) {
+                                badgeElem.className = "px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse";
+                                badgeElem.textContent = "⚠️ Cần gia hạn (" + timeStr + ")";
+                            }
+                        }
+                    }
+                }
+
+                // 2. Tính toán Refresh Token (7 ngày)
+                if (refreshPayload && refreshPayload.exp && refreshElem) {
+                    const remainingSec = refreshPayload.exp - nowSec;
+                    const expDate = new Date(refreshPayload.exp * 1000);
+                    if (refreshExpText) refreshExpText.textContent = "Hết hạn: " + expDate.toLocaleDateString('vi-VN') + " " + expDate.toLocaleTimeString('vi-VN');
+
+                    if (remainingSec <= 0) {
+                        refreshElem.textContent = "Đã hết hạn";
+                        refreshElem.className = "font-mono font-bold text-xs text-rose-400";
+                    } else {
+                        const days = Math.floor(remainingSec / 86400);
+                        const hours = Math.floor((remainingSec % 86400) / 3600);
+                        const mins = Math.floor((remainingSec % 3600) / 60);
+                        if (days > 0) {
+                            refreshElem.textContent = `${days} ngày ${hours}h ${mins}p`;
+                        } else {
+                            refreshElem.textContent = `${hours}h ${mins}p còn lại`;
+                        }
+                        refreshElem.className = "font-mono font-bold text-xs text-purple-300";
+                    }
+                }
+            }
+
+            updateTimers();
+            countdownTimerInterval = setInterval(updateTimers, 1000);
+        }
+
+        function updateTokenUI() {
+            const display = document.getElementById("tokenDisplay");
+            if (display) {
+                if (currentAccessToken) {
+                    display.textContent = currentAccessToken;
+                } else {
+                    display.textContent = "Chưa có token.";
+                }
+            }
+            startTokenCountdown();
+        }
+
         function clearAllData() {
+            if (countdownTimerInterval) clearInterval(countdownTimerInterval);
             currentAccessToken = null;
             currentRefreshToken = null;
             currentUser = null;
