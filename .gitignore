@@ -57,4 +57,7 @@ build/
 *.mov
 *ket_qua*
 *result*
+*.sh
+*.py
+*.sql
 
