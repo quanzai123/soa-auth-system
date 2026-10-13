@@ -38,11 +38,21 @@ build/
 ### VS Code ###
 .vscode/
 
-# Seminar & Presentation materials (Do not commit to code repo)
+# Seminar, Presentation & Internal Notes (NEVER commit to code repo)
 *slide*
 *thuyet_trinh*
 *kich_ban*
 *seminar*
+*presentation*
+*demo*
+*bao_cao*
 *.pdf
 *.zip
+*.pptx
+*.ppt
+*.docx
+*.doc
+*.key
+*.mp4
+*.mov
 
