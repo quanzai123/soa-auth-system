@@ -57,7 +57,7 @@ public class DatabaseViewerController {
 
         Map<String, Object> data = new HashMap<>();
         data.put("database", "google_login_db");
-        data.put("host", "localhost:1433 (Microsoft SQL Server 2022 Docker)");
+        data.put("host", "localhost:1434 (Microsoft SQL Server 2022 Docker)");
         data.put("requestedBy", authentication != null ? authentication.getName() : "ANONYMOUS");
         data.put("totalUsers", userList.size());
         data.put("totalIdentities", identityList.size());

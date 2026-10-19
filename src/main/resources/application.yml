@@ -5,7 +5,7 @@ spring:
   application:
     name: soa-auth-system
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=google_login_db;encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://localhost:1434;databaseName=google_login_db;encrypt=true;trustServerCertificate=true
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
     username: springuser
     password: Spring@123456
