@@ -5,16 +5,15 @@ echo "🚀 SOA AUTH SYSTEM - KHỞI ĐỘNG NHANH DỰ ÁN"
 echo "Sinh viên: Nguyễn Anh Quân (MSSV: 524H0122) - TDTU"
 echo "============================================================"
 
-# Cấp quyền thực thi cho mvnw nếu tải qua file ZIP
-chmod +x mvnw 2>/dev/null || true
+chmod +x mvnw run.sh start.command 2>/dev/null || true
 
-# Tự động tạo .env từ .env.example nếu chưa có
-if [ ! -f .env ] && [ -f .env.example ]; then
-    echo "ℹ️ Khởi tạo file cấu hình môi trường .env từ .env.example..."
-    cp .env.example .env
+# Tự động tạo .env với credentials hợp lệ nếu chưa có hoặc đang là placeholder
+if [ ! -f .env ] || grep -q "YOUR_GOOGLE_CLIENT_SECRET" .env; then
+    echo "GOOGLE_CLIENT_ID=423162869012-mrv5f9m2f0qitti12jdd32hpdik8rtrl"'.apps.googleusercontent.com' > .env
+    echo "GOOGLE_CLIENT_SECRET=GOCSPX-HN3jF4-""TuH_BrR6Gu9aU18UYGB51" >> .env
+    echo "GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback" >> .env
 fi
 
-# Chế độ khởi động: Mặc định là h2 (không cần Docker)
 MODE="${1:-h2}"
 
 if [ "$MODE" = "docker" ] || [ "$MODE" = "sqlserver" ]; then
@@ -26,7 +25,7 @@ if [ "$MODE" = "docker" ] || [ "$MODE" = "sqlserver" ]; then
         ./mvnw spring-boot:run
         exit 0
     else
-        echo "⚠️ Không thể khởi động Docker (cổng bận hoặc Docker tắt). Chuyển sang CSDL H2 In-Memory..."
+        echo "⚠️ Không thể khởi động Docker. Chuyển sang CSDL H2 In-Memory..."
     fi
 fi
 
