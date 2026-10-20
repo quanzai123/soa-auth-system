@@ -62,3 +62,4 @@ build/
 *.sql
 
 !run.sh
+!start.command
