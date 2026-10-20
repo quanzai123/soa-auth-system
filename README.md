@@ -1,43 +1,53 @@
 # 🛡️ Hệ Thống Xác Thực SOA (Google OAuth 2.0 & Stateless JWT)
 
-> **Đề tài Seminar Kiến trúc Hướng dịch vụ (SOA)**  
+> **Đề tài Seminar Kiến trúc Hướng dịch vụ (SOA - 504070)**  
 > **Sinh viên:** Nguyễn Anh Quân — MSSV: `524H0122`  
-> **Khoa:** Công Nghệ Thông Tin — Đại học Tôn Đức Thắng (TDTU)
+> **Khoa:** Công Nghệ Thông Tin — Đại học Tôn Đức Thắng (TDTU)  
+> **Giảng viên hướng dẫn:** Thầy Dương Hữu Phúc
 
 ---
 
-## 📂 Thành Phần Trong Dự Án
-1. **Mã nguồn Spring Boot Backend & Giao diện Web** (`src/`, `pom.xml`, `mvnw`)
-2. **Kịch bản kiểm thử Postman hoàn chỉnh** (`soa-auth-collection.json`)
+## ⚡ Hướng Dẫn Tải & Chạy Nhanh Nhất (Quick Start)
+
+### 🚀 Cách 1: 1 CÂU LỆNH DUY NHẤT (Chạy Siêu Tốc - Không cần cài Database)
+Không cần cài đặt SQL Server hay Docker, dự án tự động sử dụng CSDL nhúng H2 In-Memory:
+
+* **Tải mã nguồn về:**
+  ```bash
+  git clone https://github.com/quanzai123/soa-auth-system.git
+  cd soa-auth-system
+  ```
+
+* **Chạy ứng dụng:**
+  * **Trên macOS / Linux:**
+    ```bash
+    ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
+    ```
+    *(hoặc gõ script tự động: `./run.sh`)*
+
+  * **Trên Windows (cmd / PowerShell):**
+    ```cmd
+    mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=h2
+    ```
+    *(hoặc chỉ cần **nhấp đúp chuột** vào file: `run.bat`)*
+
+👉 **Mở trình duyệt truy cập ngay:** [http://localhost:8080](http://localhost:8080)
 
 ---
 
-## ⚡ Hướng Dẫn Cài Đặt & Chạy Ứng Dụng (3 Bước)
+### 🐳 Cách 2: 2 CÂU LỆNH VỚI DOCKER & SQL SERVER 2022 THẬT
+Nếu máy của bạn đã cài Docker và muốn chạy chuẩn với CSDL Microsoft SQL Server 2022:
 
-### Bước 1: Khởi động SQL Server 2022 (Docker)
-Chạy lệnh sau trong Terminal / Command Prompt:
-```bash
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Spring@123456" \
-   -p 1434:1433 --name sqlserver --hostname sqlserver \
-   -d mcr.microsoft.com/mssql/server:2022-latest
-```
+1. **Khởi động SQL Server 2022:**
+   ```bash
+   docker compose up -d
+   ```
+2. **Khởi động Spring Boot:**
+   * **macOS / Linux:** `./mvnw spring-boot:run`
+   * **Windows:** `mvnw.cmd spring-boot:run`
 
-### Bước 2: Chạy ứng dụng Backend
-Dự án đã tích hợp sẵn Maven Wrapper, không cần cài đặt Maven trước.
-
-* **Trên macOS / Linux:**
-  ```bash
-  ./mvnw spring-boot:run
-  ```
-* **Trên Windows (cmd / PowerShell):**
-  ```bash
-  mvnw.cmd spring-boot:run
-  ```
-
-### Bước 3: Mở Giao diện Web
-Khi ứng dụng khởi động xong, truy cập:
-* **Cổng Xác Thực Web:** [http://localhost:8080](http://localhost:8080)
-* **Trình xem Database trực tiếp:** [http://localhost:8080/database.html](http://localhost:8080/database.html)
+👉 **Mở trình duyệt truy cập:** [http://localhost:8080](http://localhost:8080)  
+👉 **Trang quản lý Database trực tiếp:** [http://localhost:8080/database.html](http://localhost:8080/database.html)
 
 ---
 
@@ -47,42 +57,28 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 
 ### Quy trình tự test từng bước:
 1. **Import vào Postman:**
-   * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Chọn file `soa-auth-collection.json`.
+   * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Kéo thả file `soa-auth-collection.json` vào.
 2. **Đăng nhập trên Web:**
    * Mở trình duyệt truy cập [http://localhost:8080](http://localhost:8080).
    * Bấm nút **"Đăng nhập an toàn với Google"** và đăng nhập bằng tài khoản Google của bạn.
    * Hệ thống sẽ tự động phân loại quyền hạn:
-     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $\rightarrow$ Cấp quyền `ROLE_STUDENT`.
-     - Email cá nhân thông thường (`@gmail.com`) $\rightarrow$ Cấp quyền `ROLE_PERSONAL`.
-3. **Chạy các API trong Postman:**
-   * Chạy lần lượt các Request từ **01 đến 10** trong Collection:
-     - **01 - 02:** Kiểm tra API Public (Cấu hình Google OAuth, Lấy URL SSO).
-     - **03:** Thử gọi API Private khi chưa đăng nhập (Bị chặn 403 Forbidden).
-     - **04:** Tự động đồng bộ phiên vừa đăng nhập trên Web vào Postman (Tự lưu Token vào biến môi trường).
-     - **05 - 07:** Gọi các API Private (Xem thông tin cá nhân, Danh sách liên kết, Dữ liệu SQL Server).
-     - **08:** Thử tính năng Refresh Token $\rightarrow$ Cấp token mới và reset đồng hồ về đủ 15 phút.
-     - **09 - 10:** Đăng xuất tài khoản (Đưa token vào Blacklist) và kiểm chứng token cũ bị từ chối truy cập.
+     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $\rightarrow$ Cấp quyền `STUDENT`.
+     - Email cá nhân thông thường (`@gmail.com`) $\rightarrow$ Cấp quyền `PERSONAL`.
+3. **Đồng bộ Token sang Postman:**
+   * **Cách A (Tự động):** Trong Postman, chạy Request `00. Đồng bộ phiên đăng nhập từ Web` $\rightarrow$ Postman tự động bắt Token mới nhất từ trình duyệt!
+   * **Cách B (File môi trường):** Trên giao diện Web, bấm nút **"Xuất môi trường Postman"** $\rightarrow$ Import file tải về vào Postman.
+4. **Kiểm thử các API nghiệp vụ:**
+   * Chạy request `04. Lấy tài nguyên Sinh viên (Yêu cầu STUDENT)`:
+     - Nếu đăng nhập bằng email TDTU: Trả về **200 OK** kèm tài nguyên sinh viên.
+     - Nếu đăng nhập bằng Gmail cá nhân: Trả về **403 Forbidden** (Chứng minh tính năng phân quyền Domain RBAC thành công 100%).
+   * Chạy request `07. Thu hồi phiên / Đăng xuất (Immediate Revocation)`:
+     - Token lập tức bị đưa vào Blacklist trong RAM.
+     - Thử gọi lại API sẽ bị chặn ngay lập tức.
 
 ---
 
-## 🛠️ Danh Sách API (RESTful Endpoints)
-
-| Phương thức | Endpoint | Quyền truy cập | Mô tả chức năng |
-| :---: | :--- | :---: | :--- |
-| `GET` | `/api/auth/google/url` | Public | Lấy URL đăng nhập Google OAuth 2.0 (RFC 6749) |
-| `GET` | `/api/auth/google/config` | Public | Lấy cấu hình Client ID & Redirect URI |
-| `POST` | `/api/auth/google/callback` | Public | Trao đổi Authorization Code lấy Token JWT |
-| `GET` | `/api/auth/latest-token` | Public | Tự động đồng bộ phiên đăng nhập từ Web sang Postman |
-| `POST` | `/api/auth/refresh-token` | Public | Cấp lại Access Token mới (15 phút) bằng Refresh Token |
-| `POST` | `/api/auth/logout` | Bearer Token | Đăng xuất & đưa token vào Blacklist |
-| `GET` | `/api/users/me` | Bearer Token | Xem thông tin hồ sơ người dùng hiện tại |
-| `GET` | `/api/users/me/linked-accounts` | Bearer Token | Xem danh sách tài khoản liên kết Google |
-| `GET` | `/api/users/database-viewer` | Bearer Token | Xem các bản ghi trong SQL Server 2022 |
-
----
-
-## 🧪 Chạy Test Tự Động Bằng Dòng Lệnh (Tùy chọn)
-Nếu muốn chạy kiểm thử tự động toàn bộ 10 API bằng dòng lệnh (Newman):
-```bash
-npx --yes newman run soa-auth-collection.json
-```
+## 🏛️ Điểm Sáng Kiến Trúc SOA Của Đồ Án
+1. **Stateless Authentication (Phi trạng thái):** Máy chủ không lưu session trong RAM, toàn bộ danh tính được nén vào Access Token có chữ ký HMAC-SHA256.
+2. **Loosely Coupled Identity (Ràng buộc lỏng):** Tách biệt thực thể người dùng nội bộ (`users`) và danh tính bên ngoài (`user_identities`), dễ dàng mở rộng sang Microsoft, Apple, VNeID.
+3. **Automated Zero Trust Domain RBAC:** Tự động nhận diện và phân quyền theo tên miền email chuẩn tổ chức giáo dục.
+4. **Bounded TTL Blacklist:** Giải quyết triệt để bài toán thu hồi Token tức thời khi Logout trong kiến trúc Stateless mà không lo phình bộ nhớ.
