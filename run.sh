@@ -1,10 +1,12 @@
 #!/bin/bash
-set -e
 
 echo "============================================================"
 echo "🚀 SOA AUTH SYSTEM - KHỞI ĐỘNG NHANH DỰ ÁN"
 echo "Sinh viên: Nguyễn Anh Quân (MSSV: 524H0122) - TDTU"
 echo "============================================================"
+
+# Cấp quyền thực thi cho mvnw nếu tải qua file ZIP
+chmod +x mvnw 2>/dev/null || true
 
 # Tự động tạo .env từ .env.example nếu chưa có
 if [ ! -f .env ] && [ -f .env.example ]; then
@@ -12,27 +14,22 @@ if [ ! -f .env ] && [ -f .env.example ]; then
     cp .env.example .env
 fi
 
-# Kiểm tra Docker
-USE_H2=true
-if command -v docker &> /dev/null; then
-    if docker info &> /dev/null; then
-        echo "✅ Phát hiện Docker đang chạy. Khởi động SQL Server 2022..."
-        docker compose up -d
-        USE_H2=false
-        sleep 3
+# Chế độ khởi động: Mặc định là h2 (không cần Docker)
+MODE="${1:-h2}"
+
+if [ "$MODE" = "docker" ] || [ "$MODE" = "sqlserver" ]; then
+    echo "🐳 Đang khởi động SQL Server 2022 qua Docker..."
+    if docker compose up -d 2>/dev/null; then
+        echo "✅ SQL Server 2022 đã sẵn sàng."
+        echo "🌟 Khởi động Backend với SQL Server..."
+        echo "🔗 Ứng dụng chạy tại: http://localhost:8080"
+        ./mvnw spring-boot:run
+        exit 0
     else
-        echo "ℹ️ Docker chưa được bật. Chuyển sang chế độ CSDL nhúng H2 (In-Memory)..."
+        echo "⚠️ Không thể khởi động Docker (cổng bận hoặc Docker tắt). Chuyển sang CSDL H2 In-Memory..."
     fi
-else
-    echo "ℹ️ Không tìm thấy Docker. Chuyển sang chế độ CSDL nhúng H2 (In-Memory)..."
 fi
 
-if [ "$USE_H2" = true ]; then
-    echo "🌟 Khởi động với H2 In-Memory Database (Không cần cài SQL Server)..."
-    echo "🔗 Ứng dụng chạy tại: http://localhost:8080"
-    ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
-else
-    echo "🌟 Khởi động với SQL Server 2022..."
-    echo "🔗 Ứng dụng chạy tại: http://localhost:8080"
-    ./mvnw spring-boot:run
-fi
+echo "🌟 Khởi động với H2 In-Memory Database (Chạy siêu tốc, không cần Docker)..."
+echo "🔗 Ứng dụng chạy tại: http://localhost:8080"
+./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
