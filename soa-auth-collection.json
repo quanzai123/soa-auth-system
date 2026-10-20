@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://unwomanly-suitable-glade.ngrok-free.dev",
+      "value": "http://localhost:8080",
       "type": "string"
     },
     {
@@ -183,8 +183,11 @@
                   "    var accToken = jsonData.data.accessToken;",
                   "    var refToken = jsonData.data.refreshToken;",
                   "    pm.collectionVariables.set(\"accessToken\", accToken);",
+                  "    try { pm.environment.set(\"accessToken\", accToken); } catch(e){}",
                   "    pm.collectionVariables.set(\"refreshToken\", refToken);",
+                  "    try { pm.environment.set(\"refreshToken\", refToken); } catch(e){}",
                   "    pm.collectionVariables.set(\"webUserEmail\", jsonData.data.user.email);",
+                  "    try { pm.environment.set(\"webUserEmail\", jsonData.data.user.email); } catch(e){}",
                   "    pm.test(\"✅ ĐÃ ĐỒNG BỘ PHIÊN ĐĂNG NHẬP TỪ WEB THÀNH CÔNG!\", function () {",
                   "        pm.expect(jsonData.success).to.eql(true);",
                   "        pm.expect(accToken).to.not.be.empty;",

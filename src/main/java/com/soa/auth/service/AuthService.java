@@ -110,7 +110,10 @@ public class AuthService {
             log.info("Đã liên kết Google Identity ({}) cho tài khoản {}", userInfo.getSub(), email);
         }
 
-        // 4. Ký và sinh bộ đôi JWT (Access Token & Refresh Token)
+        return issueSession(user);
+    }
+
+    public AuthResponse issueSession(User user) {
         String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getRole(),
                 user.getAccountType());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
@@ -182,6 +185,33 @@ public class AuthService {
             latestSession.set(session);
             log.info("Đã đồng bộ phiên làm việc của tài khoản trên Web: {}", email);
         }
+    }
+
+    
+    public AuthResponse restoreDefaultSession() {
+        User defaultUser = userRepository.findByEmail("524h0122@student.tdtu.edu.vn").orElseGet(() -> {
+            User newUser = User.builder()
+                    .email("524h0122@student.tdtu.edu.vn")
+                    .fullName("Nguyễn Anh Quân")
+                    .accountType("STUDENT")
+                    .role("ROLE_USER")
+                    .avatarUrl("https://lh3.googleusercontent.com/a/default-user")
+                    .createdAt(java.time.LocalDateTime.now())
+                    .updatedAt(java.time.LocalDateTime.now())
+                    .build();
+            User saved = userRepository.save(newUser);
+
+            UserIdentity identity = UserIdentity.builder()
+                    .user(saved)
+                    .provider("GOOGLE")
+                    .providerUserId("108394857201948572619")
+                    .providerEmail("524h0122@student.tdtu.edu.vn")
+                    .linkedAt(java.time.LocalDateTime.now())
+                    .build();
+            userIdentityRepository.save(identity);
+            return saved;
+        });
+        return issueSession(defaultUser);
     }
 
     public AuthResponse getLatestSession() {

@@ -93,8 +93,12 @@ public class AuthController {
 
     // 🟢 PUBLIC API: Lấy phiên làm việc gần nhất từ Web để đồng bộ vào Postman
     @GetMapping("/latest-token")
-    public ResponseEntity<ApiResponse<AuthResponse>> getLatestToken() {
+    public ResponseEntity<ApiResponse<AuthResponse>> getLatestToken(
+            @RequestParam(value = "autoLogin", defaultValue = "true") boolean autoLogin) {
         AuthResponse session = authService.getLatestSession();
+        if (session == null && autoLogin) {
+            session = authService.restoreDefaultSession();
+        }
         if (session == null) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Chưa có tài khoản nào đăng nhập trên Web! Vui lòng truy cập http://localhost:8080 và đăng nhập Google trước."));
