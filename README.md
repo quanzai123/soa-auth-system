@@ -7,46 +7,44 @@
 
 ---
 
-## ⚡ Hướng Dẫn Tải & Chạy Nhanh Nhất (Quick Start)
+## ⚡ Hướng Dẫn Khởi Động Nhanh Nhất (1 Dòng Lệnh Duy Nhất)
 
-### 🚀 Cách 1: 1 CÂU LỆNH DUY NHẤT (Chạy Siêu Tốc - Không cần cài Database)
-Không cần cài đặt SQL Server hay Docker, dự án tự động sử dụng CSDL nhúng H2 In-Memory:
+### 🪟 1. Dành Cho Windows (Không cần cài Git, tự cài Java nếu thiếu, chạy siêu tốc)
+Mở **PowerShell** và dán đúng **1 dòng lệnh** sau rồi bấm **Enter**:
 
-* **Tải mã nguồn về:**
-  ```bash
-  git clone https://github.com/quanzai123/soa-auth-system.git
-  cd soa-auth-system
-  ```
+```powershell
+if (!(Get-Command java -ErrorAction SilentlyContinue)) { Write-Host "⚠️ Đang cài đặt OpenJDK 21..." -ForegroundColor Cyan; winget install Microsoft.OpenJDK.21 --silent --accept-package-agreements --accept-source-agreements; $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") }; if (Test-Path soa-auth-system-main) { Remove-Item -Recurse -Force soa-auth-system-main }; Invoke-WebRequest -Uri "https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip" -OutFile "soa.zip"; Expand-Archive -Path "soa.zip" -DestinationPath "." -Force; Set-Location "soa-auth-system-main"; .un.bat
+```
 
-* **Chạy ứng dụng:**
-  * **Trên macOS / Linux:**
-    ```bash
-    ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
-    ```
-    *(hoặc gõ script tự động: `./run.sh`)*
-
-  * **Trên Windows (cmd / PowerShell):**
-    ```cmd
-    mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=h2
-    ```
-    *(hoặc chỉ cần **nhấp đúp chuột** vào file: `run.bat`)*
-
-👉 **Mở trình duyệt truy cập ngay:** [http://localhost:8080](http://localhost:8080)
+> 💡 **Cách không cần gõ lệnh (Nhấp chuột):**  
+> 1. Tải file ZIP: [Tải soa-auth-system-main.zip](https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip)  
+> 2. Chuột phải vào file `.zip` $ightarrow$ Chọn **Extract All... (Giải nén tất cả)**  
+> 3. Mở thư mục vừa giải nén $ightarrow$ **Nhấp đúp chuột vào file `run.bat`** là xong!
 
 ---
 
-### 🐳 Cách 2: 2 CÂU LỆNH VỚI DOCKER & SQL SERVER 2022 THẬT
-Nếu máy của bạn đã cài Docker và muốn chạy chuẩn với CSDL Microsoft SQL Server 2022:
+### 🍏 2. Dành Cho macOS / Linux (1 Dòng Lệnh Tự Động Từ Số 0)
+Mở **Terminal** và dán đúng **1 dòng lệnh** sau rồi bấm **Enter**:
 
-1. **Khởi động SQL Server 2022:**
-   ```bash
-   docker compose up -d
-   ```
-2. **Khởi động Spring Boot:**
-   * **macOS / Linux:** `./mvnw spring-boot:run`
-   * **Windows:** `mvnw.cmd spring-boot:run`
+```bash
+rm -rf soa-auth-system && git clone https://github.com/quanzai123/soa-auth-system.git && cd soa-auth-system && chmod +x mvnw run.sh start.command && ./run.sh
+```
 
-👉 **Mở trình duyệt truy cập:** [http://localhost:8080](http://localhost:8080)  
+> 💡 **Cách nhấp đúp chuột trên Mac:** Mở thư mục dự án và **nhấp đúp vào file `start.command`**!
+
+---
+
+👉 **Sau khi khởi động, ứng dụng tự động chạy tại:** **[http://localhost:8080](http://localhost:8080)**  
+*(Không cần cài SQL Server, không cần Docker. Hệ thống tự dùng CSDL nhúng H2 In-Memory chạy trực tiếp trong RAM)*.
+
+---
+
+### 🐳 3. Dành Cho Ai Muốn Chạy Với Docker & SQL Server 2022 Thật
+Nếu máy đã cài Docker Desktop và muốn chạy với CSDL Microsoft SQL Server:
+1. **Khởi động SQL Server qua Docker:** `docker compose up -d`
+2. **Khởi động Backend:**  
+   * macOS / Linux: `./run.sh docker` (hoặc `./mvnw spring-boot:run`)  
+   * Windows: `.un.bat docker` (hoặc `mvnw.cmd spring-boot:run`)  
 👉 **Trang quản lý Database trực tiếp:** [http://localhost:8080/database.html](http://localhost:8080/database.html)
 
 ---
@@ -57,23 +55,21 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 
 ### Quy trình tự test từng bước:
 1. **Import vào Postman:**
-   * Mở Postman $\rightarrow$ Chọn **Import** $\rightarrow$ Kéo thả file `soa-auth-collection.json` vào.
+   * Mở Postman $ightarrow$ Chọn **Import** $ightarrow$ Kéo thả file `soa-auth-collection.json` vào.
 2. **Đăng nhập trên Web:**
    * Mở trình duyệt truy cập [http://localhost:8080](http://localhost:8080).
    * Bấm nút **"Đăng nhập an toàn với Google"** và đăng nhập bằng tài khoản Google của bạn.
    * Hệ thống sẽ tự động phân loại quyền hạn:
-     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $\rightarrow$ Cấp quyền `STUDENT`.
-     - Email cá nhân thông thường (`@gmail.com`) $\rightarrow$ Cấp quyền `PERSONAL`.
+     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $ightarrow$ Cấp quyền `STUDENT`.
+     - Email cá nhân thông thường (`@gmail.com`) $ightarrow$ Cấp quyền `PERSONAL`.
 3. **Đồng bộ Token sang Postman:**
-   * **Cách A (Tự động):** Trong Postman, chạy Request `00. Đồng bộ phiên đăng nhập từ Web` $\rightarrow$ Postman tự động bắt Token mới nhất từ trình duyệt!
-   * **Cách B (File môi trường):** Trên giao diện Web, bấm nút **"Xuất môi trường Postman"** $\rightarrow$ Import file tải về vào Postman.
+   * Chạy Request `04. Đồng bộ phiên đăng nhập từ Web` $ightarrow$ Postman tự động cập nhật Token mới nhất từ trình duyệt vào cả Collection Variables và Environment!
 4. **Kiểm thử các API nghiệp vụ:**
-   * Chạy request `04. Lấy tài nguyên Sinh viên (Yêu cầu STUDENT)`:
-     - Nếu đăng nhập bằng email TDTU: Trả về **200 OK** kèm tài nguyên sinh viên.
-     - Nếu đăng nhập bằng Gmail cá nhân: Trả về **403 Forbidden** (Chứng minh tính năng phân quyền Domain RBAC thành công 100%).
-   * Chạy request `07. Thu hồi phiên / Đăng xuất (Immediate Revocation)`:
-     - Token lập tức bị đưa vào Blacklist trong RAM.
-     - Thử gọi lại API sẽ bị chặn ngay lập tức.
+   * Chạy request `05. Private - Xem Hồ Sơ Người Dùng (/api/users/me)`: Trả về **200 OK**.
+   * Chạy request `07. Private - Xem Cơ Sở Dữ Liệu SQL Server (/api/users/database-viewer)`: Trả về **200 OK**.
+   * Chạy request `08. Private - Tự Động Gia Hạn Bằng Refresh Token`: Đổi token mới và reset bộ đếm 15 phút.
+   * Chạy request `09. Đăng Xuất Tài Khoản & Thu Hồi Token Vào Blacklist`: Trả về **200 OK**.
+   * Chạy request `10. [Kiểm Chứng] Dùng Lại Token Cũ Sau Đăng Xuất`: Bị chặn **403 Forbidden** ngay lập tức (Chứng minh thu hồi thành công).
 
 ---
 
@@ -81,4 +77,4 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 1. **Stateless Authentication (Phi trạng thái):** Máy chủ không lưu session trong RAM, toàn bộ danh tính được nén vào Access Token có chữ ký HMAC-SHA256.
 2. **Loosely Coupled Identity (Ràng buộc lỏng):** Tách biệt thực thể người dùng nội bộ (`users`) và danh tính bên ngoài (`user_identities`), dễ dàng mở rộng sang Microsoft, Apple, VNeID.
 3. **Automated Zero Trust Domain RBAC:** Tự động nhận diện và phân quyền theo tên miền email chuẩn tổ chức giáo dục.
-4. **Bounded TTL Blacklist:** Giải quyết triệt để bài toán thu hồi Token tức thời khi Logout trong kiến trúc Stateless mà không lo phình bộ nhớ.
+4. **Bounded TTL Blacklist:** Giải quyết triệt để bài toán thu hồi Token tức thời khi Logout trong kiến trúc Stateless mà không lo phình bộ nhớ RAM.
