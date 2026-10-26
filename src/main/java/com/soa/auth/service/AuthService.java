@@ -14,6 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+/**
+ * Dịch vụ xác thực tập trung (Google OAuth 2.0, cấp JWT Token, quản lý phiên và Blacklist)
+ *
+ * @author Nguyễn Anh Quân (MSSV: 524H0122)
+ * @author Nguyễn Hồng Quân (MSSV: 524H0123)
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

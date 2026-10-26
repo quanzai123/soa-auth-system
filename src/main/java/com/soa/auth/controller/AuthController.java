@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Bộ điều khiển API Xác thực & Đồng bộ phiên JWT
+ *
+ * @author Nguyễn Anh Quân (MSSV: 524H0122)
+ * @author Nguyễn Hồng Quân (MSSV: 524H0123)
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

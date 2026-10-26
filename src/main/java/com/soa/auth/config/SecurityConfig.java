@@ -19,6 +19,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Cấu hình bảo mật phân tầng Spring Security 6 (Stateless JWT & CSRF Protection)
+ *
+ * @author Nguyễn Anh Quân (MSSV: 524H0122)
+ * @author Nguyễn Hồng Quân (MSSV: 524H0123)
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
