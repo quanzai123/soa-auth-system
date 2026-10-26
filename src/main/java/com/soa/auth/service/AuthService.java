@@ -211,6 +211,31 @@ public class AuthService {
             userIdentityRepository.save(identity);
             return saved;
         });
+
+        // Khởi tạo thông tin tài khoản thành viên nhóm: Nguyễn Hồng Quân (MSSV: 524H0123)
+        userRepository.findByEmail("524h0123@student.tdtu.edu.vn").orElseGet(() -> {
+            User newUser2 = User.builder()
+                    .email("524h0123@student.tdtu.edu.vn")
+                    .fullName("Nguyễn Hồng Quân")
+                    .accountType("STUDENT")
+                    .role("ROLE_USER")
+                    .avatarUrl("https://lh3.googleusercontent.com/a/default-user")
+                    .createdAt(java.time.LocalDateTime.now())
+                    .updatedAt(java.time.LocalDateTime.now())
+                    .build();
+            User saved2 = userRepository.save(newUser2);
+
+            UserIdentity identity2 = UserIdentity.builder()
+                    .user(saved2)
+                    .provider("GOOGLE")
+                    .providerUserId("108394857201948572620")
+                    .providerEmail("524h0123@student.tdtu.edu.vn")
+                    .linkedAt(java.time.LocalDateTime.now())
+                    .build();
+            userIdentityRepository.save(identity2);
+            return saved2;
+        });
+
         return issueSession(defaultUser);
     }
 

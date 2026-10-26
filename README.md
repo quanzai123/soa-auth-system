@@ -1,7 +1,9 @@
 # 🛡️ Hệ Thống Xác Thực SOA (Google OAuth 2.0 & Stateless JWT)
 
 > **Đề tài Seminar Kiến trúc Hướng dịch vụ (SOA - 504070)**  
-> **Sinh viên:** Nguyễn Anh Quân — MSSV: `524H0122`  
+> **Nhóm sinh viên thực hiện:**  
+> - Nguyễn Anh Quân — MSSV: `524H0122`  
+> - Nguyễn Hồng Quân — MSSV: `524H0123`  
 > **Khoa:** Công Nghệ Thông Tin — Đại học Tôn Đức Thắng (TDTU)  
 > **Giảng viên hướng dẫn:** Thầy Dương Hữu Phúc
 
@@ -13,13 +15,13 @@
 Mở **PowerShell** và dán đúng **1 dòng lệnh** sau rồi bấm **Enter**:
 
 ```powershell
-if (!(Get-Command java -ErrorAction SilentlyContinue)) { Write-Host "⚠️ Đang cài đặt OpenJDK 21..." -ForegroundColor Cyan; winget install Microsoft.OpenJDK.21 --silent --accept-package-agreements --accept-source-agreements; $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") }; if (Test-Path soa-auth-system-main) { Remove-Item -Recurse -Force soa-auth-system-main }; Invoke-WebRequest -Uri "https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip" -OutFile "soa.zip"; Expand-Archive -Path "soa.zip" -DestinationPath "." -Force; Set-Location "soa-auth-system-main"; .un.bat
+if (!(Get-Command java -ErrorAction SilentlyContinue)) { Write-Host "⚠️ Đang cài đặt OpenJDK 21..." -ForegroundColor Cyan; winget install Microsoft.OpenJDK.21 --silent --accept-package-agreements --accept-source-agreements; $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") }; if (Test-Path soa-auth-system-main) { Remove-Item -Recurse -Force soa-auth-system-main }; Invoke-WebRequest -Uri "https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip" -OutFile "soa.zip"; Expand-Archive -Path "soa.zip" -DestinationPath "." -Force; Set-Location "soa-auth-system-main"; .\run.bat
 ```
 
 > 💡 **Cách không cần gõ lệnh (Nhấp chuột):**  
 > 1. Tải file ZIP: [Tải soa-auth-system-main.zip](https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip)  
-> 2. Chuột phải vào file `.zip` $ightarrow$ Chọn **Extract All... (Giải nén tất cả)**  
-> 3. Mở thư mục vừa giải nén $ightarrow$ **Nhấp đúp chuột vào file `run.bat`** là xong!
+> 2. Chuột phải vào file `.zip` → Chọn **Extract All... (Giải nén tất cả)**  
+> 3. Mở thư mục vừa giải nén → **Nhấp đúp chuột vào file `run.bat`** là xong!
 
 ---
 
@@ -44,7 +46,7 @@ Nếu máy đã cài Docker Desktop và muốn chạy với CSDL Microsoft SQL S
 1. **Khởi động SQL Server qua Docker:** `docker compose up -d`
 2. **Khởi động Backend:**  
    * macOS / Linux: `./run.sh docker` (hoặc `./mvnw spring-boot:run`)  
-   * Windows: `.un.bat docker` (hoặc `mvnw.cmd spring-boot:run`)  
+   * Windows: `.\run.bat docker` (hoặc `mvnw.cmd spring-boot:run`)  
 👉 **Trang quản lý Database trực tiếp:** [http://localhost:8080/database.html](http://localhost:8080/database.html)
 
 ---
@@ -55,15 +57,15 @@ File kịch bản kiểm thử nằm ngay tại thư mục gốc: **`soa-auth-co
 
 ### Quy trình tự test từng bước:
 1. **Import vào Postman:**
-   * Mở Postman $ightarrow$ Chọn **Import** $ightarrow$ Kéo thả file `soa-auth-collection.json` vào.
+   * Mở Postman → Chọn **Import** → Kéo thả file `soa-auth-collection.json` vào.
 2. **Đăng nhập trên Web:**
    * Mở trình duyệt truy cập [http://localhost:8080](http://localhost:8080).
    * Bấm nút **"Đăng nhập an toàn với Google"** và đăng nhập bằng tài khoản Google của bạn.
    * Hệ thống sẽ tự động phân loại quyền hạn:
-     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) $ightarrow$ Cấp quyền `STUDENT`.
-     - Email cá nhân thông thường (`@gmail.com`) $ightarrow$ Cấp quyền `PERSONAL`.
+     - Email trường học (`.edu.vn`, `.edu`, `@student.tdtu.edu.vn`) → Cấp quyền `STUDENT`.
+     - Email cá nhân thông thường (`@gmail.com`) → Cấp quyền `PERSONAL`.
 3. **Đồng bộ Token sang Postman:**
-   * Chạy Request `04. Đồng bộ phiên đăng nhập từ Web` $ightarrow$ Postman tự động cập nhật Token mới nhất từ trình duyệt vào cả Collection Variables và Environment!
+   * Chạy Request `04. Đồng bộ phiên đăng nhập từ Web` → Postman tự động cập nhật Token mới nhất từ trình duyệt vào cả Collection Variables và Environment!
 4. **Kiểm thử các API nghiệp vụ:**
    * Chạy request `05. Private - Xem Hồ Sơ Người Dùng (/api/users/me)`: Trả về **200 OK**.
    * Chạy request `07. Private - Xem Cơ Sở Dữ Liệu SQL Server (/api/users/database-viewer)`: Trả về **200 OK**.

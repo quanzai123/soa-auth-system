@@ -2,7 +2,7 @@
 chcp 65001 > nul
 echo ============================================================
 echo 🚀 SOA AUTH SYSTEM - KHỞI ĐỘNG NHANH DỰ ÁN (WINDOWS)
-echo Sinh viên: Nguyễn Anh Quân (MSSV: 524H0122) - TDTU
+echo Sinh viên: Nguyễn Anh Quân (524H0122) và Nguyễn Hồng Quân (524H0123) - TDTU
 echo ============================================================
 
 REM 1. Kiểm tra Java

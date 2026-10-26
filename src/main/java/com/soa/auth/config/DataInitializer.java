@@ -57,10 +57,10 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
 
-        // 3. Khởi tạo sẵn phiên đăng nhập mặc định cho sinh viên TDTU để Postman kiểm thử 100% thành công
+        // 3. Khởi tạo sẵn phiên đăng nhập mặc định cho nhóm sinh viên TDTU để Postman kiểm thử 100% thành công
         try {
             authService.restoreDefaultSession();
-            log.info("DataInitializer: Đã khởi tạo sẵn phiên làm việc cho 524h0122@student.tdtu.edu.vn (STUDENT).");
+            log.info("DataInitializer: Đã khởi tạo sẵn dữ liệu và phiên làm việc cho nhóm sinh viên: 524h0122@student.tdtu.edu.vn (Nguyễn Anh Quân) & 524h0123@student.tdtu.edu.vn (Nguyễn Hồng Quân).");
         } catch (Exception e) {
             log.warn("Không thể khởi tạo phiên mặc định: {}", e.getMessage());
         }

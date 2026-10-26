@@ -2,7 +2,7 @@
 
 echo "============================================================"
 echo "🚀 SOA AUTH SYSTEM - KHỞI ĐỘNG NHANH DỰ ÁN"
-echo "Sinh viên: Nguyễn Anh Quân (MSSV: 524H0122) - TDTU"
+echo "Sinh viên: Nguyễn Anh Quân (524H0122) & Nguyễn Hồng Quân (524H0123) - TDTU"
 echo "============================================================"
 
 chmod +x mvnw run.sh start.command 2>/dev/null || true

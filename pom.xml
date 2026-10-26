@@ -18,7 +18,24 @@
 		<license/>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<id>524H0122</id>
+			<name>Nguyễn Anh Quân</name>
+			<email>524h0122@student.tdtu.edu.vn</email>
+			<organization>Ton Duc Thang University (TDTU)</organization>
+			<roles>
+				<role>Lead Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>524H0123</id>
+			<name>Nguyễn Hồng Quân</name>
+			<email>524h0123@student.tdtu.edu.vn</email>
+			<organization>Ton Duc Thang University (TDTU)</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
 	</developers>
 	<scm>
 		<connection/>
