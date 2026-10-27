@@ -27,10 +27,11 @@ if %ERRORLEVEL% NEQ 0 (
     echo.
     echo ❌ LỖI: Không tìm thấy môi trường Java (JDK 21) trên máy tính!
     echo.
-    echo 👉 Hướng dẫn khắc phục trong 1 phút:
-    echo    1. Tải bộ cài đặt Microsoft OpenJDK 21 chính thức (File .msi):
-    echo       https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.msi
-    echo    2. Cài đặt xong, nhấp đúp lại file run.bat này là chạy thành công 100%%.
+    echo 👉 Đang tự động mở trình duyệt tải Microsoft OpenJDK 21 chính thức (.msi)...
+    start https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.msi
+    echo.
+    echo    1. Cài đặt file .msi vừa tải về (Bấm Next -^> Finish trong 30 giây).
+    echo    2. Sau khi cài xong, nhấp đúp lại file run.bat này là chạy thành công 100%%.
     echo.
     pause
     exit /b 1
