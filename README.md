@@ -24,10 +24,11 @@
 
 Mở **PowerShell** (nhấn phím Windows, gõ `powershell`) và thực hiện theo 3 đoạn mã dưới đây:
 
-#### 🔹 Đoạn 1: Tự động kiểm tra & cài đặt Microsoft OpenJDK 21 (nếu máy chưa có)
+#### 🔹 Đoạn 1: Bật TLS 1.2 và kiểm tra/cài đặt JDK 21
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $ProgressPreference = 'SilentlyContinue'
 if (!(Get-Command java -ErrorAction SilentlyContinue)) {
-    Write-Host "⚠️ Đang tự động cài đặt Microsoft OpenJDK 21 qua winget..." -ForegroundColor Cyan
+    Write-Host "⚠️ Đang cài đặt Microsoft OpenJDK 21..." -ForegroundColor Cyan
     winget install Microsoft.OpenJDK.21 --silent --accept-package-agreements --accept-source-agreements
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 }
@@ -46,11 +47,14 @@ Set-Location "soa-auth-system-main"
 .\run.bat
 ```
 
-> 💡 **Mẹo gộp 1 dòng lệnh duy nhất trên Windows:**
+> 💡 **Mẹo gộp 1 dòng lệnh duy nhất trên Windows (Copy & Paste):**
 > ```powershell
-> if (!(Get-Command java -ErrorAction SilentlyContinue)) { Write-Host "⚠️ Đang cài đặt OpenJDK 21..." -ForegroundColor Cyan; winget install Microsoft.OpenJDK.21 --silent --accept-package-agreements --accept-source-agreements; $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") }; if (Test-Path soa-auth-system-main) { Remove-Item -Recurse -Force soa-auth-system-main }; Invoke-WebRequest -Uri "https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip" -OutFile "soa.zip"; Expand-Archive -Path "soa.zip" -DestinationPath "." -Force; Set-Location "soa-auth-system-main"; .\run.bat
+> [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $ProgressPreference = 'SilentlyContinue'; if (Test-Path soa-auth-system-main) { Remove-Item -Recurse -Force soa-auth-system-main }; Invoke-WebRequest -Uri "https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip" -OutFile "soa.zip"; Expand-Archive -Path "soa.zip" -DestinationPath "." -Force; Set-Location "soa-auth-system-main"; .\run.bat
 > ```
-> 💡 **Cách nhấp chuột không cần gõ lệnh:** Tải file [soa-auth-system-main.zip](https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip) → Chuột phải chọn **Extract All...** → Mở thư mục và **nhấp đúp chuột vào file `run.bat`**!
+> 💡 **Cách nhấp chuột không cần gõ lệnh (100% thành công):**  
+> 1. Nếu máy chưa có Java 21: Tải bộ cài chính thức [Microsoft OpenJDK 21 (.msi)](https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.msi) và cài đặt trong 30 giây.  
+> 2. Tải file ZIP mã nguồn: [soa-auth-system-main.zip](https://github.com/quanzai123/soa-auth-system/archive/refs/heads/main.zip)  
+> 3. Chuột phải chọn **Extract All... (Giải nén)** → Mở thư mục và **nhấp đúp chuột vào file `run.bat`** là xong!
 
 ---
 
